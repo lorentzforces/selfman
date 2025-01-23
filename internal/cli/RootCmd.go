@@ -1,0 +1,19 @@
+package cli
+
+import (
+	"github.com/spf13/cobra"
+)
+
+func CreateRootCmd() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use: "selfman",
+		Short: "A tool for managing self-managed and self-build applications & tools",
+	}
+
+	// TODO: initialize behavior and subcommands
+	rootCmd.InitDefaultHelpFlag()
+
+	rootCmd.AddCommand(CreateListCmd())
+
+	return rootCmd
+}

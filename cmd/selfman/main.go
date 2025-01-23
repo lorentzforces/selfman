@@ -1,7 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"github.com/lorentzforces/selfman/internal/cli"
+	"github.com/lorentzforces/selfman/internal/run"
+)
 
 func main() {
-	fmt.Println("Look ma it works")
+	err := cli.CreateRootCmd().Execute()
+	run.FailOnErr(err)
 }
