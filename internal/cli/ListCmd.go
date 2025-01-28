@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/lorentzforces/selfman/internal/config"
+	"github.com/lorentzforces/selfman/internal/run"
 	"github.com/spf13/cobra"
 )
 
@@ -16,10 +17,18 @@ func CreateListCmd() *cobra.Command {
 }
 
 func runListCmd(cmd *cobra.Command, args []string) error {
-	config, err := config.Produce()
-	fmt.Printf("==DEBUG== Resolved config: %#v\n", config)
+	configData, err := config.Produce()
+	fmt.Printf("==DEBUG== Resolved config: %s\n", configData)
 	if err != nil {
 		return err
+	}
+
+	appConfigs, err := config.LoadAppConfigs(*configData.AppConfigDir)
+	run.AssertNoErr(err)
+
+	fmt.Printf("==DEBUG== # of app  configs found: %d\n", len(appConfigs))
+	for _, appConfig := range appConfigs {
+		fmt.Printf("==DEBUG== App Config: %#v\n", appConfig)
 	}
 
 	return nil

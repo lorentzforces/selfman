@@ -1,10 +1,12 @@
 package config
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
-	"os/user"
 	"path"
+	"regexp"
 
 	"github.com/lorentzforces/selfman/internal/run"
 	yaml "gopkg.in/yaml.v3"
@@ -13,14 +15,22 @@ import (
 const ConfigurationEnvVar = "SELFMAN_CONFIG"
 
 type Config struct {
-	Test string
-	OptionalTest string `yaml:"optional-test,omitempty"`
+	AppConfigDir *string `yaml:"app-config-dir,omitempty"`
+}
+
+func (self *Config) expandPaths() {
+	*self.AppConfigDir = os.ExpandEnv(*self.AppConfigDir)
+}
+
+func (self Config) String() string {
+	cat, _ := json.MarshalIndent(self, "", "\t")
+	return string(cat)
 }
 
 func defaultConfig() Config {
+	defaultAppConfigPath := path.Join(run.ResolveXdgConfigDir(), "selfman", "apps")
 	return Config{
-		Test: "default test value",
-		OptionalTest: "default optional test value",
+		AppConfigDir: &defaultAppConfigPath,
 	}
 }
 
@@ -44,6 +54,7 @@ func Produce() (Config, error) {
 		return Config{}, fmt.Errorf("Error parsing config file: %w", err)
 	}
 
+	configData.expandPaths()
 	return configData, nil
 }
 
@@ -68,13 +79,7 @@ func resolveConfigPath(configEnvName string) (string, error) {
 		return configEnvPath, nil
 	}
 
-	configDir := os.Getenv("XDG_CONFIG_HOME")
-	if len(configDir) == 0 {
-		usr, err := user.Current()
-		run.AssertNoErr(err)
-		configDir = usr.HomeDir
-	}
-	configXdgPath := path.Join(configDir, "selfman", "config.yaml")
+	configXdgPath := path.Join(run.ResolveXdgConfigDir(), "selfman", "config.yaml")
 	found, err := checkFileAtPath(configXdgPath)
 
 	switch {
@@ -103,4 +108,88 @@ func checkFileAtPath(path string) (foundFile bool, err error) {
 	}
 
 	return true, nil
+}
+
+func coalesceConfigs(a, b Config) Config {
+	result := Config{}
+	result.AppConfigDir = run.Coalesce(b.AppConfigDir, a.AppConfigDir)
+	return result
+}
+
+type AppConfig struct {
+	Name string
+}
+
+func LoadAppConfigs(appConfigPath string) ([]AppConfig, error) {
+	stat, err := os.Stat(appConfigPath)
+	if err != nil {
+		// if the directory just doesn't exist, we say "okay" and return an empty list
+		if errors.Is(err, os.ErrNotExist) {
+			return make([]AppConfig, 0), nil
+		}
+		return nil, fmt.Errorf(
+			"Could not load configured application config path at \"%s\": %w",
+			appConfigPath, err,
+		)
+	}
+	if !stat.IsDir() {
+		return nil, fmt.Errorf(
+			"Configured application config path was not a directory: \"%s\"",
+			appConfigPath,
+		)
+	}
+
+	appConfigPaths := make([]string, 0)
+	entries, err := os.ReadDir(appConfigPath)
+	for _, entry := range entries {
+		if !entry.Type().IsRegular() {
+			continue
+		}
+		if isAppConfigFileName(entry.Name()) {
+			fullPath := path.Join(appConfigPath, entry.Name())
+			appConfigPaths = append(appConfigPaths, fullPath)
+		}
+	}
+
+	appConfigs := make([]AppConfig, 0, len(appConfigPaths))
+	for _, path := range appConfigPaths {
+		appConfig, err := parseAppConfig(path)
+		if err != nil {
+			return nil, err
+		}
+		appConfigs = append(appConfigs, appConfig)
+	}
+
+	return appConfigs, nil
+}
+
+var appConfigRegex = regexp.MustCompile(`.+\.config\.yaml\z`)
+
+func isAppConfigFileName(fileName string) bool {
+	return appConfigRegex.MatchString(fileName)
+}
+
+func parseAppConfig(appConfigPath string) (AppConfig, error) {
+	configBytes, err := os.ReadFile(appConfigPath)
+	run.AssertNoErr(err)
+
+	appConfig := AppConfig{}
+	err = yaml.Unmarshal(configBytes, &appConfig)
+	if err != nil {
+		return AppConfig{}, fmt.Errorf(
+			"Error parsing application config file \"%s\": %w",
+			appConfigPath, err,
+		)
+	}
+
+	return appConfig, nil
+}
+
+// Validates an application config - error will be non-nil if validation failed.
+func (self AppConfig) validate() error {
+	if len(self.Name) == 0 {
+		return fmt.Errorf("Application name cannot be empty")
+	}
+
+	return nil
 }

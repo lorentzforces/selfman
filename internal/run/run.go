@@ -3,6 +3,8 @@ package run
 import (
 	"fmt"
 	"os"
+	"os/user"
+	"path"
 )
 
 func FailOut(msg string) {
@@ -34,4 +36,22 @@ func AssertNoErr(err error) {
 func AssertNoErrReason(err error, reason string) {
 	if err == nil { return }
 	panic(fmt.Sprintf("Assertion violated, error encountered (%s): %s ", reason, err.Error()))
+}
+
+func Coalesce[T any](a, b *T) *T {
+	if a == nil {
+		return b
+	}
+	return a
+}
+
+func ResolveXdgConfigDir() string {
+	xdgEnvPath := os.Getenv("XDG_CONFIG_HOME")
+	if len(xdgEnvPath) > 0 {
+		return xdgEnvPath
+	}
+
+	usr, err := user.Current()
+	AssertNoErr(err) // unsure how it's possible for this to fail
+	return path.Join(usr.HomeDir, ".config")
 }

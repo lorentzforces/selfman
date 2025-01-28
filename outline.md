@@ -28,6 +28,13 @@ question: how do we configure things so that if the thing follows a "standard" p
 
 ## Data model
 
+Base config
+- basic things to configure Selfman itself
+  - executable location (for sourcing)
+
+App configs
+- separate config files in a particular directory or with a naming convention
+
 - [program|tool|managed-tool]
   - name
   - how to download (source)
