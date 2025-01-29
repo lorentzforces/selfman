@@ -1,2 +1,1 @@
-test: "monkey balls"
-optional-test: "optional balls"
+app-config-dir: '$PWD/dev-files' # this is horrifically hacky and you should never do this

@@ -3,6 +3,7 @@ module github.com/lorentzforces/selfman
 go 1.23.3
 
 require (
+	github.com/sanity-io/litter v1.5.6
 	github.com/spf13/cobra v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
 )

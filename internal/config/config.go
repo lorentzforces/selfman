@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -14,48 +13,91 @@ import (
 
 const ConfigurationEnvVar = "SELFMAN_CONFIG"
 
+func Produce() (Config, error) {
+	selfmanConfig, err := loadSelfmanConfig()
+	if err != nil {
+		return Config{}, err
+	}
+
+	appConfigs, err := loadAppConfigs(*selfmanConfig.AppConfigDir)
+	if err != nil {
+		return Config{}, err
+	}
+
+	for _, app := range appConfigs {
+		err := app.validate()
+		if err != nil {
+			newErr := fmt.Errorf(
+				"Invalid app config in app directory \"%s\"",
+				*selfmanConfig.AppConfigDir,
+			)
+			return Config{}, errors.Join(newErr, err)
+		}
+	}
+
+	return Config{
+		SelfmanConfig: selfmanConfig,
+		AppConfigs: appConfigs,
+	}, nil
+}
+
 type Config struct {
+	SelfmanConfig Selfman
+	AppConfigs []AppConfig
+}
+
+type Selfman struct {
 	AppConfigDir *string `yaml:"app-config-dir,omitempty"`
 }
 
-func (self *Config) expandPaths() {
+func (self *Selfman) expandPaths() {
 	*self.AppConfigDir = os.ExpandEnv(*self.AppConfigDir)
 }
 
-func (self Config) String() string {
-	cat, _ := json.MarshalIndent(self, "", "\t")
-	return string(cat)
+type AppConfig struct {
+	Name string
 }
 
-func defaultConfig() Config {
+// Validates an application config - error will be non-nil if validation failed.
+func (self AppConfig) validate() error {
+	if len(self.Name) == 0 {
+		return fmt.Errorf("Application name cannot be empty")
+	}
+
+	return nil
+}
+
+func defaultConfig() Selfman {
 	defaultAppConfigPath := path.Join(run.ResolveXdgConfigDir(), "selfman", "apps")
-	return Config{
+	return Selfman{
 		AppConfigDir: &defaultAppConfigPath,
 	}
 }
 
-func Produce() (Config, error) {
+func loadSelfmanConfig() (Selfman, error) {
 	path, err := resolveConfigPath(ConfigurationEnvVar)
 	if err != nil {
-		return Config{}, fmt.Errorf("Could not resolve config file: %w", err)
+		return Selfman{}, fmt.Errorf("Could not resolve config file: %w", err)
 	}
-	fmt.Printf("==DEBUG== Config file at: %s\n", path)
 
-	configData := defaultConfig()
+	defaultConfig := defaultConfig()
 
 	if len(path) == 0 {
-		return configData, nil
+		return defaultConfig, nil
 	}
 
 	configBytes, err := os.ReadFile(path)
 	run.AssertNoErrReason(err, "Config file was resolved but later reading failed")
+	configData := Selfman{}
 	err = yaml.Unmarshal(configBytes, &configData)
 	if err != nil {
-		return Config{}, fmt.Errorf("Error parsing config file: %w", err)
+		return Selfman{}, fmt.Errorf("Error parsing config file: %w", err)
 	}
 
-	configData.expandPaths()
-	return configData, nil
+	finalConfig := coalesceConfigs(defaultConfig, configData)
+
+	finalConfig.expandPaths()
+	return finalConfig, nil
 }
 
 // Returns the first-resolved configuration location. Resolves in this order of priority:
@@ -110,17 +152,13 @@ func checkFileAtPath(path string) (foundFile bool, err error) {
 	return true, nil
 }
 
-func coalesceConfigs(a, b Config) Config {
-	result := Config{}
+func coalesceConfigs(a, b Selfman) Selfman {
+	result := Selfman{}
 	result.AppConfigDir = run.Coalesce(b.AppConfigDir, a.AppConfigDir)
 	return result
 }
 
-type AppConfig struct {
-	Name string
-}
-
-func LoadAppConfigs(appConfigPath string) ([]AppConfig, error) {
+func loadAppConfigs(appConfigPath string) ([]AppConfig, error) {
 	stat, err := os.Stat(appConfigPath)
 	if err != nil {
 		// if the directory just doesn't exist, we say "okay" and return an empty list
@@ -176,20 +214,13 @@ func parseAppConfig(appConfigPath string) (AppConfig, error) {
 	appConfig := AppConfig{}
 	err = yaml.Unmarshal(configBytes, &appConfig)
 	if err != nil {
-		return AppConfig{}, fmt.Errorf(
-			"Error parsing application config file \"%s\": %w",
-			appConfigPath, err,
+		newErr := fmt.Errorf(
+			"Error parsing application config file \"%s\"",
+			appConfigPath,
 		)
+
+		return AppConfig{}, errors.Join(newErr, err)
 	}
 
 	return appConfig, nil
-}
-
-// Validates an application config - error will be non-nil if validation failed.
-func (self AppConfig) validate() error {
-	if len(self.Name) == 0 {
-		return fmt.Errorf("Application name cannot be empty")
-	}
-
-	return nil
 }
