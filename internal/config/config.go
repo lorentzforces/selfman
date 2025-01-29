@@ -138,8 +138,11 @@ func resolveConfigPath(configEnvName string) (string, error) {
 func checkFileAtPath(path string) (foundFile bool, err error) {
 	file, err := os.Open(path)
 	defer file.Close()
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
 	// in theory if the above succeeded, this cannot fail
