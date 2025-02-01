@@ -28,9 +28,9 @@ func runListCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func listApplications(config config.Config) []string {
-	results := make([]string, 0, len(config.AppConfigs))
-	for _, app := range config.AppConfigs {
+func listApplications(cfg config.Config) []string {
+	results := make([]string, 0, len(cfg.AppConfigs))
+	for _, app := range cfg.AppConfigs {
 		results = append(results, app.Name)
 	}
 	return results
