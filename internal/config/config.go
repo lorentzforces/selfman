@@ -7,6 +7,7 @@ import (
 	"path"
 	"regexp"
 
+	"github.com/lorentzforces/selfman/internal/platform"
 	"github.com/lorentzforces/selfman/internal/run"
 	yaml "gopkg.in/yaml.v3"
 )
@@ -56,6 +57,8 @@ func (self *Selfman) expandPaths() {
 
 type AppConfig struct {
 	Name string
+	Type string
+	RemoteRepo string `yaml:"remote-repo,omitEmpty"`
 }
 
 // Validates an application config - error will be non-nil if validation failed.
@@ -68,7 +71,7 @@ func (self AppConfig) validate() error {
 }
 
 func defaultConfig() Selfman {
-	defaultAppConfigPath := path.Join(run.ResolveXdgConfigDir(), "selfman", "apps")
+	defaultAppConfigPath := path.Join(platform.ResolveXdgConfigDir(), "selfman", "apps")
 	return Selfman{
 		AppConfigDir: &defaultAppConfigPath,
 	}
@@ -121,7 +124,7 @@ func resolveConfigPath(configEnvName string) (string, error) {
 		return configEnvPath, nil
 	}
 
-	configXdgPath := path.Join(run.ResolveXdgConfigDir(), "selfman", "config.yaml")
+	configXdgPath := path.Join(platform.ResolveXdgConfigDir(), "selfman", "config.yaml")
 	found, err := checkFileAtPath(configXdgPath)
 
 	switch {

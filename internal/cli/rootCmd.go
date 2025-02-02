@@ -15,7 +15,7 @@ func CreateRootCmd() *cobra.Command {
 	rootCmd.InitDefaultHelpFlag()
 
 	rootCmd.AddCommand(CreateListCmd())
-	rootCmd.AddCommand(CreateInstallCmd())
+	rootCmd.AddCommand(CreateInstallCmd().cobraCmd)
 
 	return rootCmd
 }

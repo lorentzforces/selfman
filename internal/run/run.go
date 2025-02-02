@@ -3,8 +3,6 @@ package run
 import (
 	"fmt"
 	"os"
-	"os/user"
-	"path"
 )
 
 func FailOut(msg string) {
@@ -45,13 +43,9 @@ func Coalesce[T any](a, b *T) *T {
 	return a
 }
 
-func ResolveXdgConfigDir() string {
-	xdgEnvPath := os.Getenv("XDG_CONFIG_HOME")
-	if len(xdgEnvPath) > 0 {
-		return xdgEnvPath
+func CoalesceString(a, b string) string {
+	if len(a) == 0 {
+		return b
 	}
-
-	usr, err := user.Current()
-	AssertNoErr(err) // unsure how it's possible for this to fail
-	return path.Join(usr.HomeDir, ".config")
+	return a
 }

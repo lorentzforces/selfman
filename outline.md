@@ -49,9 +49,17 @@ App configs
     - an arbitrary script
     - location of output executable
 
+
+### Directories
+
+- config (`$XDG_CONFIG_HOME/selfman`)
+- application configs (`$XDG_CONFIG_HOME/selfman/apps`)
+- application repositories (`$XDG_DATA_HOME/selfman/repos`)
+- application binaries or other artifacts (`$XDG_DATA_HOME/selfman/artifacts`)
+  - TODO: figure out how we track old versions etc
+
 ### Noodling
 
-- where links to executables get put (`$HOME/mine/programs/bin`)
 - where the actual built executables get put
   - `$HOME/.local/share/selfman/bin`
   - `$HOME/mine/programs/selfman`
