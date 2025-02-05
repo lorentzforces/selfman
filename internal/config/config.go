@@ -61,10 +61,34 @@ type AppConfig struct {
 	RemoteRepo string `yaml:"remote-repo,omitEmpty"`
 }
 
+type AppType string
+var appTypes = map[string]AppType {
+	"git": "git",
+}
+
+func GetAppType(label string) (AppType, error) {
+	appType, present := appTypes[label]
+	if !present {
+		return "", fmt.Errorf("Invalid AppType label passed: %s", label)
+	}
+	return appType, nil
+}
+
+func MustBeAppType(label string) AppType {
+	appType, present := appTypes[label]
+	run.Assert(present, fmt.Sprintf("Invalid AppType label passed: %s", label))
+	return appType
+}
+
 // Validates an application config - error will be non-nil if validation failed.
 func (self AppConfig) validate() error {
 	if len(self.Name) == 0 {
 		return fmt.Errorf("Application name cannot be empty")
+	}
+
+	_, err := GetAppType(self.Type)
+	if err != nil {
+		return fmt.Errorf("Invalid application type: %s", self.Type)
 	}
 
 	return nil

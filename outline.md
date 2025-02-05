@@ -58,15 +58,13 @@ App configs
 - application binaries or other artifacts (`$XDG_DATA_HOME/selfman/artifacts`)
   - TODO: figure out how we track old versions etc
 
-### Noodling
+### File system noodling
 
-- where the actual built executables get put
-  - `$HOME/.local/share/selfman/bin`
-  - `$HOME/mine/programs/selfman`
-- what method of storage is used
-  - probably sqlite
-- where the data lives
-  - `$HOME/.local/share/selfman/data.db`
+For a given app, we need to:
+
+- determine its status:
+  - configured but not present
+  - configured and present
 
 ### Additional TODO
 
