@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/lorentzforces/selfman/internal/config"
+	"github.com/lorentzforces/selfman/internal/data"
 	"github.com/spf13/cobra"
 )
 
@@ -16,22 +16,34 @@ func CreateListCmd() *cobra.Command {
 }
 
 func runListCmd(cmd *cobra.Command, args []string) error {
-	configData, err := config.Produce()
+	configData, err := data.Produce()
 	if err != nil {
 		return err
 	}
 
+	// TODO: use tabwriter or something similar to format this better
 	results := listApplications(configData)
-	for _, line := range results {
-		fmt.Println(line)
+	for _, result := range results {
+		fmt.Println(result)
 	}
 	return nil
 }
 
-func listApplications(cfg config.Config) []string {
-	results := make([]string, 0, len(cfg.AppConfigs))
-	for _, app := range cfg.AppConfigs {
-		results = append(results, app.Name)
+type listResult struct {
+	name string
+	status data.AppStatus
+}
+
+func (self listResult) String() string {
+	return fmt.Sprintf("%s (%s)", self.name, self.status)
+}
+
+// TODO: mock and test
+func listApplications(selfmanData data.Selfman) []listResult {
+	results := make([]listResult, 0, len(selfmanData.AppConfigs))
+	for _, app := range selfmanData.AppConfigs {
+		status := selfmanData.AppStatus(app.Name)
+		results = append(results, listResult{name: app.Name, status: status})
 	}
 	return results
 }

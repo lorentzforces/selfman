@@ -1,4 +1,4 @@
-package platform
+package data
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 	"github.com/lorentzforces/selfman/internal/run"
 )
 
-func ResolveXdgConfigDir() string {
+func resolveXdgConfigDir() string {
 	xdgEnvPath := os.Getenv("XDG_CONFIG_HOME")
 	if len(xdgEnvPath) > 0 {
 		return xdgEnvPath
@@ -19,7 +19,7 @@ func ResolveXdgConfigDir() string {
 	return path.Join(usr.HomeDir, ".config")
 }
 
-func ResolveXdgDataDir() string {
+func resolveXdgDataDir() string {
 	xdgEnvPath := os.Getenv("XDG_DATA_HOME")
 	if len(xdgEnvPath) > 0 {
 		return xdgEnvPath
@@ -28,9 +28,4 @@ func ResolveXdgDataDir() string {
 	usr, err := user.Current()
 	run.AssertNoErr(err)
 	return path.Join(usr.HomeDir, ".local", "share")
-}
-
-func ResolveRepoPathForApp(name string) string {
-	basePath := ResolveXdgDataDir()
-	return path.Join(basePath, "selfman", "repos", name)
 }

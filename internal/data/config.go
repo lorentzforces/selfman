@@ -1,4 +1,4 @@
-package config
+package data
 
 import (
 	"errors"
@@ -7,58 +7,26 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/lorentzforces/selfman/internal/platform"
 	"github.com/lorentzforces/selfman/internal/run"
 	yaml "gopkg.in/yaml.v3"
 )
 
 const ConfigurationEnvVar = "SELFMAN_CONFIG"
 
-func Produce() (Config, error) {
-	selfmanConfig, err := loadSelfmanConfig()
-	if err != nil {
-		return Config{}, err
-	}
-
-	appConfigs, err := loadAppConfigs(*selfmanConfig.AppConfigDir)
-	if err != nil {
-		return Config{}, err
-	}
-
-	for _, app := range appConfigs {
-		err := app.validate()
-		if err != nil {
-			newErr := fmt.Errorf(
-				"Invalid app config in app directory \"%s\"",
-				*selfmanConfig.AppConfigDir,
-			)
-			return Config{}, errors.Join(newErr, err)
-		}
-	}
-
-	return Config{
-		SelfmanConfig: selfmanConfig,
-		AppConfigs: appConfigs,
-	}, nil
-}
-
-type Config struct {
-	SelfmanConfig Selfman
-	AppConfigs []AppConfig
-}
-
-type Selfman struct {
+type SystemConfig struct {
 	AppConfigDir *string `yaml:"app-config-dir,omitempty"`
+	AppSourceDir *string `yaml:"app-source-dir,omitempty"`
 }
 
-func (self *Selfman) expandPaths() {
+func (self *SystemConfig) expandPaths() {
 	*self.AppConfigDir = os.ExpandEnv(*self.AppConfigDir)
+	*self.AppSourceDir = os.ExpandEnv(*self.AppSourceDir)
 }
 
 type AppConfig struct {
 	Name string
 	Type string
-	RemoteRepo string `yaml:"remote-repo,omitEmpty"`
+	RemoteRepo string `yaml:"remote-repo"`
 }
 
 type AppType string
@@ -91,20 +59,25 @@ func (self AppConfig) validate() error {
 		return fmt.Errorf("Invalid application type: %s", self.Type)
 	}
 
+	// TODO: validate properties required for specific app types
+	//       ex: git repo is required for a git app type
+
 	return nil
 }
 
-func defaultConfig() Selfman {
-	defaultAppConfigPath := path.Join(platform.ResolveXdgConfigDir(), "selfman", "apps")
-	return Selfman{
+func defaultConfig() SystemConfig {
+	defaultAppConfigPath := path.Join(resolveXdgConfigDir(), "selfman", "apps")
+	defaultAppSourcePath := path.Join(resolveXdgDataDir(), "selfman", "sources")
+	return SystemConfig{
 		AppConfigDir: &defaultAppConfigPath,
+		AppSourceDir: &defaultAppSourcePath,
 	}
 }
 
-func loadSelfmanConfig() (Selfman, error) {
+func loadSystemConfig() (SystemConfig, error) {
 	path, err := resolveConfigPath(ConfigurationEnvVar)
 	if err != nil {
-		return Selfman{}, fmt.Errorf("Could not resolve config file: %w", err)
+		return SystemConfig{}, fmt.Errorf("Could not resolve config file: %w", err)
 	}
 
 	defaultConfig := defaultConfig()
@@ -115,10 +88,10 @@ func loadSelfmanConfig() (Selfman, error) {
 
 	configBytes, err := os.ReadFile(path)
 	run.AssertNoErrReason(err, "Config file was resolved but later reading failed")
-	configData := Selfman{}
+	configData := SystemConfig{}
 	err = yaml.Unmarshal(configBytes, &configData)
 	if err != nil {
-		return Selfman{}, fmt.Errorf("Error parsing config file: %w", err)
+		return SystemConfig{}, fmt.Errorf("Error parsing config file: %w", err)
 	}
 
 	finalConfig := coalesceConfigs(defaultConfig, configData)
@@ -148,7 +121,7 @@ func resolveConfigPath(configEnvName string) (string, error) {
 		return configEnvPath, nil
 	}
 
-	configXdgPath := path.Join(platform.ResolveXdgConfigDir(), "selfman", "config.yaml")
+	configXdgPath := path.Join(resolveXdgConfigDir(), "selfman", "config.yaml")
 	found, err := checkFileAtPath(configXdgPath)
 
 	switch {
@@ -182,9 +155,10 @@ func checkFileAtPath(path string) (foundFile bool, err error) {
 	return true, nil
 }
 
-func coalesceConfigs(a, b Selfman) Selfman {
-	result := Selfman{}
+func coalesceConfigs(a, b SystemConfig) SystemConfig {
+	result := SystemConfig{}
 	result.AppConfigDir = run.Coalesce(b.AppConfigDir, a.AppConfigDir)
+	result.AppSourceDir = run.Coalesce(b.AppSourceDir, a.AppSourceDir)
 	return result
 }
 

@@ -3,9 +3,8 @@ package cli
 import (
 	"fmt"
 
-	"github.com/lorentzforces/selfman/internal/config"
+	"github.com/lorentzforces/selfman/internal/data"
 	"github.com/lorentzforces/selfman/internal/ops"
-	"github.com/lorentzforces/selfman/internal/platform"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +24,7 @@ func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	if err := validatePrereqs(); err != nil {
 		return nil, err
 	}
-	configData, err := config.Produce()
+	selfmanData, err := data.Produce()
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +34,7 @@ func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 			fmt.Errorf("Install command expects an application name, but one was not provided")
 	}
 
-	ops, err := installApp(args[0], configData)
+	ops, err := installApp(args[0], selfmanData)
 	if err != nil {
 		return nil, err
 	}
@@ -43,18 +42,13 @@ func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	return ops, nil
 }
 
-func installApp(name string, cfg config.Config) ([]ops.Operation, error) {
-	var app *config.AppConfig
-	for _, appCandidate := range cfg.AppConfigs {
-		if appCandidate.Name == name {
-			app = &appCandidate
-		}
-	}
-	if app == nil {
+func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
+	app, configured := selfmanData.AppConfigs[name]
+	if !configured {
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
 	}
 
-	repoPath := platform.ResolveRepoPathForApp(name)
+	repoPath := selfmanData.AppSourcePath(app.Name)
 	actions := []ops.Operation{
 		&ops.GitClone{
 			RepoUrl: app.RemoteRepo,

@@ -21,6 +21,9 @@ Stuff managed by `selfman` might be a tool that I've written myself, but also mi
     - is literally just a binary
     - location of output executable
     - an arbitrary script
+  - how to make available/install
+    - link to artifact
+    - run a command
 
 question: what if it's just a binary?
 question: how do we configure things so that if the thing follows a "standard" pattern, you can just use that off-the-shelf, and then override selectively things that you want?
@@ -49,22 +52,13 @@ App configs
     - an arbitrary script
     - location of output executable
 
-
 ### Directories
 
 - config (`$XDG_CONFIG_HOME/selfman`)
 - application configs (`$XDG_CONFIG_HOME/selfman/apps`)
-- application repositories (`$XDG_DATA_HOME/selfman/repos`)
+- application repositories (`$XDG_DATA_HOME/selfman/sources`)
 - application binaries or other artifacts (`$XDG_DATA_HOME/selfman/artifacts`)
   - TODO: figure out how we track old versions etc
-
-### File system noodling
-
-For a given app, we need to:
-
-- determine its status:
-  - configured but not present
-  - configured and present
 
 ### Additional TODO
 
