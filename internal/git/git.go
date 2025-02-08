@@ -1,9 +1,9 @@
 package git
 
 import (
-	"context"
 	"os/exec"
-	"time"
+
+	"github.com/lorentzforces/selfman/internal/run"
 )
 
 func ExecExists() bool {
@@ -12,12 +12,6 @@ func ExecExists() bool {
 }
 
 func Clone(url string, destPath string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10) * time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, "git", "clone", url, destPath)
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	cmd := run.NewCmd("git", run.WithArgs("clone", url, destPath), run.WithTimeout(10))
+	return cmd.Exec()
 }

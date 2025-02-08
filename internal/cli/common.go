@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/lorentzforces/selfman/internal/git"
 	"github.com/lorentzforces/selfman/internal/ops"
@@ -34,8 +35,11 @@ func (self *SelfmanCommand) RunSelfmanCmd(cmd *cobra.Command, args []string) err
 
 	opErrs := make([]error, 0)
 	for _, action := range actions {
+		fmt.Fprintf(os.Stderr, "Performing op: %s\n", action.Describe())
 		msg, err := action.Execute()
-		fmt.Println(msg)
+		if len(msg) > 0 {
+			fmt.Println(msg)
+		}
 		if err != nil {
 			opErrs = append(opErrs, err)
 		}
