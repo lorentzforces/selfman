@@ -49,3 +49,11 @@ func CoalesceString(a, b string) string {
 	}
 	return a
 }
+
+// Returns a pointer to a passed string, for when you want to put a string into a *string field in
+// a literal.
+//
+// i.e. myObj{ str: run.StrPtr("a string literal") }
+func StrPtr(str string) *string {
+	return &str
+}

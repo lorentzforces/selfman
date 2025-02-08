@@ -43,7 +43,7 @@ func Produce() (Selfman, error) {
 	return Selfman{
 		SystemConfig: &systemConfig,
 		AppConfigs: appConfigMap,
-		Storage: OnDiskManagedFiles{},
+		Storage: &OnDiskManagedFiles{},
 	}, nil
 }
 
@@ -63,7 +63,7 @@ func (self Selfman) AppStatus(appName string) AppStatus {
 
 	switch appType {
 	case "git": {
-		appPresent := self.Storage.isGitAppPresent(appSourcePath)
+		appPresent := self.Storage.IsGitAppPresent(appSourcePath)
 		if appPresent {
 			return AppStatusPresent
 		} else {

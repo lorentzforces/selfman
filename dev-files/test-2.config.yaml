@@ -1,2 +1,3 @@
-name: 'test application the second'
+name: 'test-app-II'
 type: git
+remote-repo: 'git@github.com:github/gitignore.git'

@@ -6,12 +6,12 @@ import (
 )
 
 type ManagedFiles interface {
-	isGitAppPresent(appPath string) bool
+	IsGitAppPresent(appPath string) bool
 }
 
 type OnDiskManagedFiles struct { }
 
-func (self OnDiskManagedFiles) isGitAppPresent(appPath string) bool {
+func (self *OnDiskManagedFiles) IsGitAppPresent(appPath string) bool {
 	gitFilePath := path.Join(appPath, ".git")
 	stat, err := os.Stat(gitFilePath)
 	if err == nil && stat.IsDir() {

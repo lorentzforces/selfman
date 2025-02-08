@@ -6,7 +6,7 @@ type MockManagedFiles struct {
 	mock.Mock
 }
 
-func (self MockManagedFiles) isGitAppPresent(appPath string) bool {
+func (self *MockManagedFiles) IsGitAppPresent(appPath string) bool {
 	args := self.Called(appPath)
 	return args.Bool(0)
 }

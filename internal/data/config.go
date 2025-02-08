@@ -66,11 +66,16 @@ func (self AppConfig) validate() error {
 }
 
 func defaultConfig() SystemConfig {
-	defaultAppConfigPath := path.Join(resolveXdgConfigDir(), "selfman", "apps")
-	defaultAppSourcePath := path.Join(resolveXdgDataDir(), "selfman", "sources")
 	return SystemConfig{
-		AppConfigDir: &defaultAppConfigPath,
-		AppSourceDir: &defaultAppSourcePath,
+		AppConfigDir: run.StrPtr(path.Join(resolveXdgConfigDir(), "selfman", "apps")),
+		AppSourceDir: run.StrPtr(path.Join(resolveXdgDataDir(), "selfman", "sources")),
+	}
+}
+
+func DefaultTestConfig() *SystemConfig {
+	return &SystemConfig{
+		AppConfigDir: run.StrPtr("/tmp/selfman-test/apps"),
+		AppSourceDir: run.StrPtr("/tmp/selfman-test/sources"),
 	}
 }
 
