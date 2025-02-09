@@ -17,11 +17,11 @@ func TestAppStatusesAreReflected(t *testing.T) {
 	mockStorage := mocks.MockManagedFiles{}
 	mockStorage.On(
 		"IsGitAppPresent",
-		path.Join(*systemConfig.AppSourceDir, presentApp.Name),
+		path.Join(systemConfig.SourcesPath(), presentApp.Name),
 	).Return(true)
 	mockStorage.On(
 		"IsGitAppPresent",
-		path.Join(*systemConfig.AppSourceDir, notPresentApp.Name),
+		path.Join(systemConfig.SourcesPath(), notPresentApp.Name),
 	).Return(false)
 
 	selfmanData := data.Selfman{
@@ -39,5 +39,6 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		{ name: presentApp.Name, status: data.AppStatusPresent },
 		{ name: notPresentApp.Name, status: data.AppStatusNotPresent },
 	}
-	assert.Equal(t, expected, results)
+	// TODO: iterating over a map is nondeterministic, put a deliberate sort in place on the list command
+	assert.ElementsMatch(t, expected, results)
 }

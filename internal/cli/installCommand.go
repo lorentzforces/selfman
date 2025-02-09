@@ -48,11 +48,18 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
 	}
 
+	// TODO: right now we only support apps of type git
 	repoPath := selfmanData.AppSourcePath(app.Name)
+	buildTargetPath := selfmanData.AppBuildTargetPath(app.Name)
+	targetPath := selfmanData.AppTargetPath(app.Name)
 	actions := []ops.Operation{
 		&ops.GitClone{
-			RepoUrl: app.RemoteRepo,
+			RepoUrl: *app.RemoteRepo,
 			DestinationPath: repoPath,
+		},
+		&ops.MoveTarget{
+			SourcePath: buildTargetPath,
+			DestinationPath: targetPath,
 		},
 	}
 	return actions, nil

@@ -32,7 +32,7 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 	appToInstall := data.AppConfig{
 		Name: "git-repo-app",
 		Type: "git",
-		RemoteRepo: "git@github.com:github/gitignore.git",
+		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 	}
 
 	selfmanData := data.Selfman{
@@ -43,13 +43,22 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 		Storage: nil,
 	}
 
-	actions, err := installApp("git-repo-app", selfmanData)
+	actions, err := installApp(appToInstall.Name, selfmanData)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 	expectedActions := []ops.Operation{
 		&ops.GitClone{
-			RepoUrl: selfmanData.AppConfigs["git-repo-app"].RemoteRepo,
-			DestinationPath: path.Join(*selfmanData.SystemConfig.AppSourceDir, "git-repo-app"),
+			RepoUrl: *selfmanData.AppConfigs[appToInstall.Name].RemoteRepo,
+			DestinationPath: path.Join(selfmanData.SystemConfig.SourcesPath(), appToInstall.Name),
+		},
+		// TODO: this will need to take into account app-specific build target paths
+		&ops.MoveTarget{
+			SourcePath: path.Join(
+				selfmanData.SystemConfig.SourcesPath(),
+				appToInstall.Name,
+				appToInstall.Name,
+			),
+			DestinationPath: path.Join(selfmanData.SystemConfig.TargetsPath(), appToInstall.Name),
 		},
 	}
 	assert.Equal(t, expectedActions, actions)

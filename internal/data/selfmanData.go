@@ -79,5 +79,17 @@ func (self Selfman) AppStatus(appName string) AppStatus {
 func (self Selfman) AppSourcePath(appName string) string {
 	_, present := self.AppConfigs[appName]
 	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
-	return path.Join(*self.SystemConfig.AppSourceDir, appName)
+	return path.Join(self.SystemConfig.SourcesPath(), appName)
+}
+
+func (self Selfman) AppTargetPath(appName string) string {
+	_, present := self.AppConfigs[appName]
+	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
+	return path.Join(self.SystemConfig.TargetsPath(), appName)
+}
+
+func (self Selfman) AppBuildTargetPath(appName string) string {
+	_, present := self.AppConfigs[appName]
+	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
+	return path.Join(self.AppSourcePath(appName), appName)
 }

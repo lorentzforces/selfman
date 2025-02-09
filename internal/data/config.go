@@ -15,18 +15,27 @@ const ConfigurationEnvVar = "SELFMAN_CONFIG"
 
 type SystemConfig struct {
 	AppConfigDir *string `yaml:"app-config-dir,omitempty"`
-	AppSourceDir *string `yaml:"app-source-dir,omitempty"`
+	DataDir *string `yaml:"data-dir,omitempty"`
 }
 
 func (self *SystemConfig) expandPaths() {
 	*self.AppConfigDir = os.ExpandEnv(*self.AppConfigDir)
-	*self.AppSourceDir = os.ExpandEnv(*self.AppSourceDir)
+	*self.DataDir = os.ExpandEnv(*self.DataDir)
+}
+
+func (self *SystemConfig) SourcesPath() string {
+	return path.Join(*self.DataDir, "sources")
+}
+
+func (self *SystemConfig) TargetsPath() string {
+	return path.Join(*self.DataDir, "targets")
 }
 
 type AppConfig struct {
 	Name string
 	Type string
-	RemoteRepo string `yaml:"remote-repo"`
+	BuildTarget string
+	RemoteRepo *string `yaml:"remote-repo,omitempty"`
 }
 
 type AppType string
@@ -48,6 +57,9 @@ func MustBeAppType(label string) AppType {
 	return appType
 }
 
+func (self *AppConfig) applyDefaults() {
+}
+
 // Validates an application config - error will be non-nil if validation failed.
 func (self AppConfig) validate() error {
 	if len(self.Name) == 0 {
@@ -56,11 +68,12 @@ func (self AppConfig) validate() error {
 
 	_, err := GetAppType(self.Type)
 	if err != nil {
-		return fmt.Errorf("Invalid application type: %s", self.Type)
+		return fmt.Errorf("(app %s) Invalid application type: %s", self.Name, self.Type)
 	}
 
-	// TODO: validate properties required for specific app types
-	//       ex: git repo is required for a git app type
+	if self.Type == "git" && self.RemoteRepo == nil {
+		return fmt.Errorf("(app %s) Remote repo must be specified for apps of type git", self.Name)
+	}
 
 	return nil
 }
@@ -68,14 +81,14 @@ func (self AppConfig) validate() error {
 func defaultConfig() SystemConfig {
 	return SystemConfig{
 		AppConfigDir: run.StrPtr(path.Join(resolveXdgConfigDir(), "selfman", "apps")),
-		AppSourceDir: run.StrPtr(path.Join(resolveXdgDataDir(), "selfman", "sources")),
+		DataDir: run.StrPtr(path.Join(resolveXdgDataDir(), "selfman")),
 	}
 }
 
 func DefaultTestConfig() *SystemConfig {
 	return &SystemConfig{
 		AppConfigDir: run.StrPtr("/tmp/selfman-test/apps"),
-		AppSourceDir: run.StrPtr("/tmp/selfman-test/sources"),
+		DataDir: run.StrPtr("/tmp/selfman-test/data"),
 	}
 }
 
@@ -163,7 +176,7 @@ func checkFileAtPath(path string) (foundFile bool, err error) {
 func coalesceConfigs(a, b SystemConfig) SystemConfig {
 	result := SystemConfig{}
 	result.AppConfigDir = run.Coalesce(b.AppConfigDir, a.AppConfigDir)
-	result.AppSourceDir = run.Coalesce(b.AppSourceDir, a.AppSourceDir)
+	result.DataDir = run.Coalesce(b.DataDir, a.DataDir)
 	return result
 }
 

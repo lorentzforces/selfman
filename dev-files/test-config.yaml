@@ -1,2 +1,2 @@
 app-config-dir: '$PWD/dev-files' # this is horrifically hacky and you should never do this 👀
-app-source-dir: '/tmp/selfman-manual-testing/sources'
+data-dir: '/tmp/selfman-manual-testing'
