@@ -57,7 +57,7 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 				appToInstall.Name,
 				appToInstall.Name,
 			),
-			DestinationPath: path.Join(selfmanData.SystemConfig.TargetsPath(), appToInstall.Name),
+			DestinationPath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
 		},
 	}
 	assert.Equal(t, expectedActions, actions)

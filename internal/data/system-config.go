@@ -121,8 +121,8 @@ func (self *SystemConfig) SourcesPath() string {
 	return path.Join(*self.DataDir, "sources")
 }
 
-func (self *SystemConfig) TargetsPath() string {
-	return path.Join(*self.DataDir, "targets")
+func (self *SystemConfig) ArtifactsPath() string {
+	return path.Join(*self.DataDir, "artifacts")
 }
 
 func defaultConfig() SystemConfig {

@@ -91,10 +91,10 @@ func (self Selfman) AppSourcePath(appName string) string {
 	return path.Join(self.SystemConfig.SourcesPath(), appName)
 }
 
-func (self Selfman) AppTargetPath(appName string) string {
+func (self Selfman) AppArtifactPath(appName string) string {
 	_, present := self.AppConfigs[appName]
 	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
-	return path.Join(self.SystemConfig.TargetsPath(), appName)
+	return path.Join(self.SystemConfig.ArtifactsPath(), appName)
 }
 
 func (self Selfman) AppBuildTargetPath(appName string) string {
