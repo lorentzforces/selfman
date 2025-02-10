@@ -57,10 +57,12 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 			RepoUrl: *app.RemoteRepo,
 			DestinationPath: repoPath,
 		},
+		// TODO: build step
 		&ops.MoveTarget{
 			SourcePath: buildTargetPath,
 			DestinationPath: targetPath,
 		},
+		// TODO: link target step
 	}
 	return actions, nil
 }

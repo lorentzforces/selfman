@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/lorentzforces/selfman/internal/data"
 	"github.com/spf13/cobra"
@@ -38,12 +39,20 @@ func (self listResult) String() string {
 	return fmt.Sprintf("%s (%s)", self.name, self.status)
 }
 
-// TODO: mock and test
 func listApplications(selfmanData data.Selfman) []listResult {
 	results := make([]listResult, 0, len(selfmanData.AppConfigs))
 	for _, app := range selfmanData.AppConfigs {
 		status := selfmanData.AppStatus(app.Name)
 		results = append(results, listResult{name: app.Name, status: status})
 	}
+
+	slices.SortFunc(results, func(a, b listResult) int {
+		switch {
+		case a.name < b.name: return -1
+		case b.name > a.name: return 1
+		default: return 0
+		}
+	})
+
 	return results
 }

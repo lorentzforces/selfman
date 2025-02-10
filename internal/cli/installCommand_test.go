@@ -18,7 +18,6 @@ func TestInstallCommandValidatesNameExists(t *testing.T) {
 		Storage: nil,
 	}
 
-
 	_, err := installApp("not-available-name", selfmanData)
 	assert.Error(
 		t, err,
@@ -35,13 +34,13 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 	}
 
-	selfmanData := data.Selfman{
-		SystemConfig: systemConfig,
-		AppConfigs: map[string]data.AppConfig{
-			appToInstall.Name: appToInstall,
-		},
-		Storage: nil,
-	}
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{appToInstall},
+		nil,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
 
 	actions, err := installApp(appToInstall.Name, selfmanData)
 	assert.NoError(t, err)

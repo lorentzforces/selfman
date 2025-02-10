@@ -28,13 +28,13 @@ type OpDescription struct {
 
 func (self OpDescription) String() string {
 	var buf strings.Builder
-	self.BuildString(&buf)
+	self.buildString(&buf)
 	return buf.String()
 }
 
 const opDescriptionIndent string = "    "
 
-func (self OpDescription) BuildString(buf *strings.Builder) {
+func (self OpDescription) buildString(buf *strings.Builder) {
 	buf.WriteString(self.TopLine)
 	buf.WriteString("\n")
 	for _, contextLine := range self.ContextLines {

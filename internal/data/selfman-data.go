@@ -27,13 +27,22 @@ func Produce() (Selfman, error) {
 		return Selfman{}, err
 	}
 
-	appConfigMap := make(map[string]AppConfig, len(appConfigs))
-	for _, app := range appConfigs {
+	return SelfmanFromValues(&systemConfig, appConfigs, &OnDiskManagedFiles{})
+}
+
+func SelfmanFromValues(
+	system *SystemConfig,
+	apps []AppConfig,
+	storage ManagedFiles,
+) (Selfman, error) {
+	appConfigMap := make(map[string]AppConfig, len(apps))
+	for _, app := range apps {
+		app.applyDefaults()
 		err := app.validate()
 		if err != nil {
 			newErr := fmt.Errorf(
 				"Invalid app config in app directory \"%s\"",
-				*systemConfig.AppConfigDir,
+				*system.AppConfigDir,
 			)
 			return Selfman{}, errors.Join(newErr, err)
 		}
@@ -41,9 +50,9 @@ func Produce() (Selfman, error) {
 	}
 
 	return Selfman{
-		SystemConfig: &systemConfig,
+		SystemConfig: system,
 		AppConfigs: appConfigMap,
-		Storage: &OnDiskManagedFiles{},
+		Storage: storage,
 	}, nil
 }
 
@@ -89,7 +98,7 @@ func (self Selfman) AppTargetPath(appName string) string {
 }
 
 func (self Selfman) AppBuildTargetPath(appName string) string {
-	_, present := self.AppConfigs[appName]
+	app, present := self.AppConfigs[appName]
 	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
-	return path.Join(self.AppSourcePath(appName), appName)
+	return path.Join(self.AppSourcePath(appName), app.BuildTarget)
 }

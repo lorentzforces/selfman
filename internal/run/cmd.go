@@ -8,19 +8,19 @@ import (
 	"time"
 )
 
-type Error struct {
+type CmdError struct {
 	baseError error
 	stdErr string
 }
 
-func errorFrom(baseError error, stdErr string) Error {
-	return Error{
+func errorFrom(baseError error, stdErr string) CmdError {
+	return CmdError{
 		baseError,
 		stdErr,
 	}
 }
 
-func (self *Error) Error() string {
+func (self *CmdError) Error() string {
 	return fmt.Sprintf(
 		"Command run error (%s)\n" +
 			"CMD ERR OUTPUT:\n%s",
@@ -29,7 +29,7 @@ func (self *Error) Error() string {
 	)
 }
 
-func (self *Error) ErrorOutput() string {
+func (self *CmdError) ErrorOutput() string {
 	return self.stdErr
 }
 
