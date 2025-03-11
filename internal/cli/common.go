@@ -42,6 +42,7 @@ func (self *SelfmanCommand) RunSelfmanCmd(cmd *cobra.Command, args []string) err
 		}
 		if err != nil {
 			opErrs = append(opErrs, err)
+			break
 		}
 	}
 

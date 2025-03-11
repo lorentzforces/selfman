@@ -49,20 +49,25 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 	}
 
 	// TODO: right now we only support apps of type git
-	repoPath := selfmanData.AppSourcePath(app.Name)
-	buildTargetPath := selfmanData.AppBuildTargetPath(app.Name)
-	artifactPath := selfmanData.AppArtifactPath(app.Name)
+	repoPath := app.SourcePath()
+	buildTargetPath := app.BuildTargetPath()
+	artifactPath := app.ArtifactPath()
+	binPath := app.BinaryPath()
+	buildOp := app.GetBuildOp()
 	actions := []ops.Operation{
-		&ops.GitClone{
+		ops.GitClone{
 			RepoUrl: *app.RemoteRepo,
 			DestinationPath: repoPath,
 		},
-		// TODO: build step
-		&ops.MoveTarget{
+		buildOp,
+		ops.MoveTarget{
 			SourcePath: buildTargetPath,
 			DestinationPath: artifactPath,
 		},
-		// TODO: link target step
+		ops.LinkArtifact{
+			SourcePath: artifactPath,
+			DestinationPath: binPath,
+		},
 	}
 	return actions, nil
 }

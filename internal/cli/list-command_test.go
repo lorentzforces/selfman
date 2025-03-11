@@ -14,14 +14,18 @@ import (
 func TestAppStatusesAreReflected(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
 	presentApp := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "PresentApp",
 		Type: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
+		BuildAction: "none",
 	}
 	notPresentApp := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "NotPresentApp",
 		Type: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
+		BuildAction: "none",
 	}
 
 	mockStorage := mocks.MockManagedFiles{}
@@ -56,29 +60,39 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	// there are a lot of configs here, but it's so it (hopefully) never gets sorted randomly
 	// in the case that tested code is just iterating over the map values
 	alphaApp := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "alpha",
 		Type: "git",
 		RemoteRepo: run.StrPtr("test"),
+		BuildAction: "none",
 	}
 	bravoApp := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "bravo",
 		Type: "git",
 		RemoteRepo: run.StrPtr("test"),
+		BuildAction: "none",
 	}
 	charlieApp := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "charlie",
 		Type: "git",
 		RemoteRepo: run.StrPtr("test"),
+		BuildAction: "none",
 	}
 	deltaApp := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "delta",
 		Type: "git",
 		RemoteRepo: run.StrPtr("test"),
+		BuildAction: "none",
 	}
 	foxtrotApp := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "foxtrot",
 		Type: "git",
 		RemoteRepo: run.StrPtr("test"),
+		BuildAction: "none",
 	}
 
 	mockStorage := mocks.MockManagedFiles{}

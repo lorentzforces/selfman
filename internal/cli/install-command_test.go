@@ -29,9 +29,11 @@ func TestInstallCommandValidatesNameExists(t *testing.T) {
 func TestInstallCommandProducesSaneOperations(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
 	appToInstall := data.AppConfig{
+		SystemConfig: systemConfig,
 		Name: "git-repo-app",
 		Type: "git",
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
+		BuildAction: "none",
 	}
 
 	selfmanData, err := data.SelfmanFromValues(
@@ -46,18 +48,23 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 	expectedActions := []ops.Operation{
-		&ops.GitClone{
+		ops.GitClone{
 			RepoUrl: *selfmanData.AppConfigs[appToInstall.Name].RemoteRepo,
 			DestinationPath: path.Join(selfmanData.SystemConfig.SourcesPath(), appToInstall.Name),
 		},
 		// TODO: this will need to take into account app-specific build target paths
-		&ops.MoveTarget{
+		ops.NoBuildOp,
+		ops.MoveTarget{
 			SourcePath: path.Join(
 				selfmanData.SystemConfig.SourcesPath(),
 				appToInstall.Name,
 				appToInstall.Name,
 			),
 			DestinationPath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
+		},
+		ops.LinkArtifact{
+			SourcePath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
+			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToInstall.Name),
 		},
 	}
 	assert.Equal(t, expectedActions, actions)

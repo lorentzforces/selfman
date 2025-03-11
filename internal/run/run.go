@@ -57,3 +57,9 @@ func CoalesceString(a, b string) string {
 func StrPtr(str string) *string {
 	return &str
 }
+
+var ErrNotImplemented = fmt.Errorf("Not yet implemented")
+
+func VerifyDirExists(path string) error {
+	return os.MkdirAll(path, os.ModePerm)
+}

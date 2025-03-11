@@ -29,3 +29,9 @@ func resolveXdgDataDir() string {
 	run.AssertNoErr(err)
 	return path.Join(usr.HomeDir, ".local", "share")
 }
+
+func resolveXdgBinDir() string {
+	usr, err := user.Current()
+	run.AssertNoErr(err)
+	return path.Join(usr.HomeDir, ".local", "bin")
+}

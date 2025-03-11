@@ -16,6 +16,7 @@ func DefaultTestConfig() *SystemConfig {
 	return &SystemConfig{
 		AppConfigDir: run.StrPtr("/tmp/selfman-test/apps"),
 		DataDir: run.StrPtr("/tmp/selfman-test/data"),
+		BinaryDir: run.StrPtr("/tmp/selfman-test/bin"),
 	}
 }
 
@@ -104,17 +105,20 @@ func coalesceConfigs(a, b SystemConfig) SystemConfig {
 	result := SystemConfig{}
 	result.AppConfigDir = run.Coalesce(b.AppConfigDir, a.AppConfigDir)
 	result.DataDir = run.Coalesce(b.DataDir, a.DataDir)
+	result.BinaryDir = run.Coalesce(b.BinaryDir, a.BinaryDir)
 	return result
 }
 
 type SystemConfig struct {
 	AppConfigDir *string `yaml:"app-config-dir,omitempty"`
 	DataDir *string `yaml:"data-dir,omitempty"`
+	BinaryDir *string `yaml:"binary-dir,omitempty"`
 }
 
 func (self *SystemConfig) expandPaths() {
 	*self.AppConfigDir = os.ExpandEnv(*self.AppConfigDir)
 	*self.DataDir = os.ExpandEnv(*self.DataDir)
+	*self.BinaryDir = os.ExpandEnv(*self.BinaryDir)
 }
 
 func (self *SystemConfig) SourcesPath() string {
@@ -129,6 +133,7 @@ func defaultConfig() SystemConfig {
 	return SystemConfig{
 		AppConfigDir: run.StrPtr(path.Join(resolveXdgConfigDir(), "selfman", "apps")),
 		DataDir: run.StrPtr(path.Join(resolveXdgDataDir(), "selfman")),
+		BinaryDir: run.StrPtr(resolveXdgBinDir()),
 	}
 }
 

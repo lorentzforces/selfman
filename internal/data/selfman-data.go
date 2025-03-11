@@ -3,13 +3,10 @@ package data
 import (
 	"errors"
 	"fmt"
-	"path"
 
 	"github.com/lorentzforces/selfman/internal/run"
 )
 
-// TODO: most external things don't actually care about app configs, so provide a "is app
-// configured" method
 type Selfman struct {
 	SystemConfig *SystemConfig
 	AppConfigs map[string]AppConfig
@@ -22,12 +19,18 @@ func Produce() (Selfman, error) {
 		return Selfman{}, err
 	}
 
-	appConfigs, err := loadAppConfigs(*systemConfig.AppConfigDir)
+	appConfigs, err := loadAppConfigs(&systemConfig)
 	if err != nil {
 		return Selfman{}, err
 	}
 
-	return SelfmanFromValues(&systemConfig, appConfigs, &OnDiskManagedFiles{})
+	selfman, err := SelfmanFromValues(&systemConfig, appConfigs, &OnDiskManagedFiles{})
+	if err != nil {
+		return Selfman{}, err
+	}
+
+	selfman.VerifyAllDirectoriesExist()
+	return selfman, nil
 }
 
 func SelfmanFromValues(
@@ -67,11 +70,9 @@ func (self Selfman) AppStatus(appName string) AppStatus {
 	foundApp, present := self.AppConfigs[appName]
 	if !present { return AppStatusNotConfigured }
 
-	appType := MustBeAppType(foundApp.Type)
-	appSourcePath := self.AppSourcePath(appName)
-
-	switch appType {
-	case "git": {
+	appSourcePath := foundApp.SourcePath()
+	switch foundApp.Type {
+	case appTypeGit: {
 		appPresent := self.Storage.IsGitAppPresent(appSourcePath)
 		if appPresent {
 			return AppStatusPresent
@@ -82,23 +83,12 @@ func (self Selfman) AppStatus(appName string) AppStatus {
 	}
 
 	run.FailOut(fmt.Sprintf("Undetermined case for app name: %s", appName))
-	panic("unreachable")
+	panic("unreachable in theory")
 }
 
-func (self Selfman) AppSourcePath(appName string) string {
-	_, present := self.AppConfigs[appName]
-	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
-	return path.Join(self.SystemConfig.SourcesPath(), appName)
-}
-
-func (self Selfman) AppArtifactPath(appName string) string {
-	_, present := self.AppConfigs[appName]
-	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
-	return path.Join(self.SystemConfig.ArtifactsPath(), appName)
-}
-
-func (self Selfman) AppBuildTargetPath(appName string) string {
-	app, present := self.AppConfigs[appName]
-	run.Assert(present, fmt.Sprintf("Invalid app name: %s", appName))
-	return path.Join(self.AppSourcePath(appName), app.BuildTarget)
+func (self Selfman) VerifyAllDirectoriesExist() {
+	run.VerifyDirExists(*self.SystemConfig.DataDir)
+	run.VerifyDirExists(*self.SystemConfig.AppConfigDir)
+	run.VerifyDirExists(*self.SystemConfig.BinaryDir)
+	run.VerifyDirExists(self.SystemConfig.ArtifactsPath())
 }
