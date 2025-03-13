@@ -17,6 +17,7 @@ func DefaultTestConfig() *SystemConfig {
 		AppConfigDir: run.StrPtr("/tmp/selfman-test/apps"),
 		DataDir: run.StrPtr("/tmp/selfman-test/data"),
 		BinaryDir: run.StrPtr("/tmp/selfman-test/bin"),
+		ScriptShell: run.StrPtr("/bin/sh"),
 	}
 }
 
@@ -106,13 +107,20 @@ func coalesceConfigs(a, b SystemConfig) SystemConfig {
 	result.AppConfigDir = run.Coalesce(b.AppConfigDir, a.AppConfigDir)
 	result.DataDir = run.Coalesce(b.DataDir, a.DataDir)
 	result.BinaryDir = run.Coalesce(b.BinaryDir, a.BinaryDir)
+	result.ScriptShell = run.Coalesce(b.ScriptShell, a.ScriptShell)
 	return result
 }
 
 type SystemConfig struct {
+	// The directory in which to search for app config files
 	AppConfigDir *string `yaml:"app-config-dir,omitempty"`
+	// The directory to use for selfman data
 	DataDir *string `yaml:"data-dir,omitempty"`
+	// The directory in which to place binary files
 	BinaryDir *string `yaml:"binary-dir,omitempty"`
+	// The shell to be used to invoke build scripts. Defaults to "/bin/sh", will be invoked with
+	// the "-c" option.
+	ScriptShell *string `yaml:"script-shell,omitempty"`
 }
 
 func (self *SystemConfig) expandPaths() {
@@ -134,6 +142,7 @@ func defaultConfig() SystemConfig {
 		AppConfigDir: run.StrPtr(path.Join(resolveXdgConfigDir(), "selfman", "apps")),
 		DataDir: run.StrPtr(path.Join(resolveXdgDataDir(), "selfman")),
 		BinaryDir: run.StrPtr(resolveXdgBinDir()),
+		ScriptShell: run.StrPtr("/bin/sh"),
 	}
 }
 
