@@ -12,6 +12,9 @@ func ExecExists() bool {
 }
 
 func Clone(url string, destPath string) error {
-	cmd := run.NewCmd("git", run.WithArgs("clone", url, destPath), run.WithTimeout(10))
-	return cmd.Exec()
+	return run.NewCmd("git", run.WithArgs("clone", url, destPath), run.WithTimeout(30)).Exec()
+}
+
+func Pull() error {
+	return run.NewCmd("git", run.WithArgs("pull"), run.WithTimeout(30)).Exec()
 }

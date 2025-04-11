@@ -16,10 +16,12 @@ import (
 const (
 	appTypeGit = "git"
 
-	buildActionNone = "none"
+	actionNone = "none"
+
 	buildActionScript = "script"
 
 	installActionGitClone = "git-clone"
+	updateActionGitPull = "git-pull"
 )
 
 // TODO: do we want to continue using the same struct for serialization and runtime usage?
@@ -31,6 +33,8 @@ type AppConfig struct {
 	BuildAction string `yaml:"build-action"`
 	BuildTarget string `yaml:"build-target"`
 	RemoteRepo *string `yaml:"remote-repo,omitempty"`
+	BuildCmd *string `yaml:"build-cmd,omitempty"`
+	UpdateAction string `yaml:"update-action"`
 }
 
 func (self *AppConfig) SourcePath() string {
@@ -59,18 +63,44 @@ func (self *AppConfig) GetInstallOp() ops.Operation {
 	}
 	}
 
-	run.FailOut("Unhandled install action -> operation mapping")
+	run.FailOut(fmt.Sprintf(
+		"Unhandled install action -> operation mapping: %s",
+		self.InstallAction,
+	))
 	panic("Unreachable in theory")
 }
 
 func (self *AppConfig) GetBuildOp() ops.Operation {
 	switch self.BuildAction {
-	case buildActionNone: {
+	case actionNone: {
 		return ops.NoBuildOp
+	}
+	case buildActionScript: {
+		return ops.BuildWithScript{
+			SourcePath: self.SourcePath(),
+			ScriptShell: *self.SystemConfig.ScriptShell,
+			ScriptCmd: *self.BuildCmd,
+		}
 	}
 	}
 
-	run.FailOut("Unhandled build action -> operation mapping")
+	run.FailOut(fmt.Sprintf("Unhandled build action -> operation mapping: %s", self.BuildAction))
+	panic("Unreachable in theory")
+}
+
+func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
+	switch self.UpdateAction {
+	case actionNone: {
+		return ops.NoUpdateOp
+	}
+	case updateActionGitPull: {
+		return ops.GitPull{
+			RepoPath: self.SourcePath(),
+		}
+	}
+	}
+
+	run.FailOut(fmt.Sprintf("Unhandled update action -> operation mapping: %s", self.UpdateAction))
 	panic("Unreachable in theory")
 }
 
@@ -83,6 +113,9 @@ func (self *AppConfig) applyDefaults() {
 	// as a full default config (then apply name-dependent defaults)
 	if self.Type == appTypeGit && self.InstallAction == "" {
 		self.InstallAction = installActionGitClone
+	}
+	if self.Type == appTypeGit && self.UpdateAction == "" {
+		self.UpdateAction = updateActionGitPull
 	}
 }
 
@@ -120,7 +153,7 @@ func (self *AppConfig) isValidAppType() bool {
 
 func (self *AppConfig) isValidBuildAction() bool {
 	switch self.BuildAction {
-	case buildActionNone, buildActionScript: return true
+	case actionNone, buildActionScript: return true
 	default: return false
 	}
 }
@@ -128,6 +161,13 @@ func (self *AppConfig) isValidBuildAction() bool {
 func (self *AppConfig) isValidInstallAction() bool {
 	switch self.InstallAction {
 	case installActionGitClone: return true
+	default: return false
+	}
+}
+
+func (self *AppConfig) isValidUpdateAction() bool {
+	switch self.UpdateAction {
+	case actionNone, updateActionGitPull: return true
 	default: return false
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInstallCommandValidatesNameExists(t *testing.T) {
+func TestUpdateCommandValidatesNameExists(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
 	selfmanData := data.Selfman{
 		SystemConfig: systemConfig,
@@ -26,45 +26,56 @@ func TestInstallCommandValidatesNameExists(t *testing.T) {
 	)
 }
 
-func TestInstallCommandProducesSaneOperations(t *testing.T) {
+func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
-	appToInstall := data.AppConfig{
+	appToUpdate := data.AppConfig{
 		SystemConfig: systemConfig,
-		Name: "git-repo-app",
+		Name: "updatable-app",
 		Type: "git",
-		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
-		BuildAction: "none",
+		RemoteRepo: run.StrPtr("doesn't matter"),
+		BuildAction: "script",
+		BuildCmd: run.StrPtr("make deez"),
 	}
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
-		[]data.AppConfig{appToInstall},
+		[]data.AppConfig{appToUpdate},
 		nil,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 
-	actions, err := installApp(appToInstall.Name, selfmanData)
+	actions, err := updateApp(appToUpdate.Name, selfmanData)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 	expectedActions := []ops.Operation{
-		ops.GitClone{
-			RepoUrl: *selfmanData.AppConfigs[appToInstall.Name].RemoteRepo,
-			DestinationPath: path.Join(selfmanData.SystemConfig.SourcesPath(), appToInstall.Name),
+		ops.GitPull{
+			RepoPath: path.Join(
+				selfmanData.SystemConfig.SourcesPath(),
+				appToUpdate.Name,
+			),
 		},
-		// TODO: change this to have an actual build step in it
-		ops.NoBuildOp,
+		ops.BuildWithScript{
+			SourcePath: path.Join(
+				selfmanData.SystemConfig.SourcesPath(),
+				appToUpdate.Name,
+			),
+			ScriptShell: "/bin/sh",
+			ScriptCmd: "make deez",
+		},
 		ops.MoveTarget{
 			SourcePath: path.Join(
 				selfmanData.SystemConfig.SourcesPath(),
-				appToInstall.Name,
-				appToInstall.Name,
+				appToUpdate.Name,
+				appToUpdate.Name,
 			),
-			DestinationPath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
+			DestinationPath: path.Join(
+				selfmanData.SystemConfig.ArtifactsPath(), appToUpdate.Name,
+			),
 		},
 		ops.LinkArtifact{
-			SourcePath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
-			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToInstall.Name),
+			SourcePath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToUpdate.Name),
+			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToUpdate.Name),
 		},
 	}
 	assert.Equal(t, expectedActions, actions)

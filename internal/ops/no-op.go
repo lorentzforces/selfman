@@ -24,3 +24,8 @@ var NoBuildOp = NoOp{
 	TypeOfNoOp: "build",
 	Description: "This application does not need to be built",
 }
+
+var NoUpdateOp = NoOp{
+	TypeOfNoOp: "update",
+	Description: "This application does not update",
+}
