@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -46,30 +45,29 @@ func (self *SelfmanCommand) RunMutatingSelfmanCmd(cmd *cobra.Command, args []str
 
 // Since the messages printed herein are progress updates, print to stderr
 func executeOperations(actions []ops.Operation) error {
-	opErrs := make([]error, 0)
+	// TODO: make this the verbose version, add non-verbose that only prints basic summary
 	for _, action := range actions {
 		fmt.Fprintln(os.Stderr, action.Describe())
 		msg, err := action.Execute()
-		if len(msg) > 0 {
-			fmt.Println(msg)
-		}
+
 		if err != nil {
-			opErrs = append(opErrs, err)
-			break
+			return err
 		}
+
+		fmt.Printf("✓")
+		if len(msg) > 0 {
+			fmt.Printf(" %s", msg)
+		}
+		fmt.Println()
 	}
-	// TODO: make this the verbose version, add non-verbose that only prints basic summary
-	if len(opErrs) > 0 {
-		return errors.Join(opErrs...)
-	} else {
-		return nil
-	}
+
+	return nil
 }
 
 // Since this is asked for as the main output, print to stdout
 func dryRunOperations(actions []ops.Operation) {
-	fmt.Println("Would perform the following operations:")
+	fmt.Printf("Would perform the following operations:\n\n")
 	for _, action := range actions {
-		fmt.Print(action.Describe())
+		fmt.Println(action.Describe())
 	}
 }

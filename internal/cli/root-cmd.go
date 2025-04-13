@@ -31,6 +31,7 @@ func CreateRootCmd() *cobra.Command {
 	// TODO: uninstall
 	// TODO(?): rollback?
 	// TODO(?): list previous versions?
+	// TODO: some kind of validation/check command
 
 	return rootCmd
 }

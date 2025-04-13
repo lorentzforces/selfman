@@ -104,6 +104,21 @@ func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 	panic("Unreachable in theory")
 }
 
+func (self *AppConfig) HasExistingArtifactLink() bool {
+	stat, err := os.Lstat(self.BinaryPath())
+	if err != nil {
+		return false
+	}
+
+	// TODO: what if there IS a file and it's not the right file?
+
+	if stat.Mode() & os.ModeSymlink > 0 {
+		return true
+	}
+
+	return false
+}
+
 func (self *AppConfig) applyDefaults() {
 	if len(self.BuildTarget) == 0 {
 		self.BuildTarget = strings.ToLower(self.Name)

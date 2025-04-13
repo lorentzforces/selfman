@@ -40,6 +40,5 @@ func (self OpDescription) buildString(buf *strings.Builder) {
 	for _, contextLine := range self.ContextLines {
 		buf.WriteString(opDescriptionIndent)
 		buf.WriteString(contextLine)
-		buf.WriteString("\n")
 	}
 }

@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -12,7 +13,8 @@ type LinkArtifact struct {
 
 func (self LinkArtifact) Execute() (string, error) {
 	err := os.Symlink(self.SourcePath, self.DestinationPath)
-	if err != nil {
+
+	if err != nil && !errors.Is(err, os.ErrExist) {
 		return "", fmt.Errorf("Linking artifact failed: %w", err)
 	}
 	return "Linked artifact", nil

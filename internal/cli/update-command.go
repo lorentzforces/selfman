@@ -54,6 +54,7 @@ func updateApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 	binPath := app.BinaryPath()
 	buildOp := app.GetBuildOp()
 	updateOp := app.GetFetchUpdatesOp()
+
 	actions := []ops.Operation{
 		updateOp,
 		buildOp,
