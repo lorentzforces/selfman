@@ -7,6 +7,7 @@ import (
 
 	"github.com/lorentzforces/selfman/internal/git"
 	"github.com/lorentzforces/selfman/internal/ops"
+	"github.com/lorentzforces/selfman/internal/run"
 	"github.com/spf13/cobra"
 )
 
@@ -23,19 +24,31 @@ type SelfmanCommand struct {
 }
 
 func (self *SelfmanCommand) InitCobraFunctions() {
-	self.cobraCmd.RunE = self.RunSelfmanCmd
+	self.cobraCmd.RunE = self.RunMutatingSelfmanCmd
 }
 
-func (self *SelfmanCommand) RunSelfmanCmd(cmd *cobra.Command, args []string) error {
-	// TODO: support a dry-run
+func (self *SelfmanCommand) RunMutatingSelfmanCmd(cmd *cobra.Command, args []string) error {
 	actions, err := self.opsCmd(cmd, args)
 	if err != nil {
 		return err
 	}
 
+	dryRun, err := cmd.Flags().GetBool(globalOptionDryRun)
+	run.AssertNoErr(err)
+
+	if dryRun {
+		dryRunOperations(actions)
+		return nil
+	} else {
+		return executeOperations(actions)
+	}
+}
+
+// Since the messages printed herein are progress updates, print to stderr
+func executeOperations(actions []ops.Operation) error {
 	opErrs := make([]error, 0)
 	for _, action := range actions {
-		fmt.Fprintf(os.Stderr, "Performing op: %s\n", action.Describe())
+		fmt.Fprintln(os.Stderr, action.Describe())
 		msg, err := action.Execute()
 		if len(msg) > 0 {
 			fmt.Println(msg)
@@ -45,10 +58,18 @@ func (self *SelfmanCommand) RunSelfmanCmd(cmd *cobra.Command, args []string) err
 			break
 		}
 	}
-
+	// TODO: make this the verbose version, add non-verbose that only prints basic summary
 	if len(opErrs) > 0 {
 		return errors.Join(opErrs...)
 	} else {
 		return nil
+	}
+}
+
+// Since this is asked for as the main output, print to stdout
+func dryRunOperations(actions []ops.Operation) {
+	fmt.Println("Would perform the following operations:")
+	for _, action := range actions {
+		fmt.Print(action.Describe())
 	}
 }

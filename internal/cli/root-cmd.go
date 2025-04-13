@@ -4,6 +4,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	globalOptionDryRun = "dry-run"
+)
+
 func CreateRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use: "selfman",
@@ -13,6 +17,12 @@ func CreateRootCmd() *cobra.Command {
 	}
 
 	rootCmd.InitDefaultHelpFlag()
+	rootCmd.PersistentFlags().Bool(
+		globalOptionDryRun,
+		false,
+		"For commands which would make changes, print operations that would be taken instead of " +
+			"executing them",
+	)
 
 	rootCmd.AddCommand(CreateListCmd())
 	rootCmd.AddCommand(CreateInstallCmd().cobraCmd)

@@ -10,8 +10,7 @@ import (
 
 func CreateUpdateCmd() SelfmanCommand {
 	cmd := SelfmanCommand{
-		cobraCmd: &cobra.Command{
-		},
+		cobraCmd: &cobra.Command{},
 		opsCmd: runUpdateCmd,
 	}
 	cmd.InitCobraFunctions()
