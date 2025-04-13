@@ -27,6 +27,10 @@ func CreateRootCmd() *cobra.Command {
 	rootCmd.AddCommand(CreateListCmd())
 	rootCmd.AddCommand(CreateInstallCmd().cobraCmd)
 	rootCmd.AddCommand(CreateUpdateCmd().cobraCmd)
+	// TODO: intake binary for static-binary app
+	// TODO: uninstall
+	// TODO(?): rollback?
+	// TODO(?): list previous versions?
 
 	return rootCmd
 }

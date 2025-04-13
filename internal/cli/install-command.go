@@ -11,7 +11,7 @@ import (
 func CreateInstallCmd() SelfmanCommand {
 	cmd := SelfmanCommand{
 		cobraCmd: &cobra.Command{
-			Use: "install app-name",
+			Use: "install [flags] app-name",
 			Short: "Install an application with a pre-existing configuration file",
 		},
 		opsCmd: runInstallCmd,
@@ -42,6 +42,7 @@ func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	return ops, nil
 }
 
+// TODO: check if app is already installed
 func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 	app, configured := selfmanData.AppConfigs[name]
 	if !configured {
