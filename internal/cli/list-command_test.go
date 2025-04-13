@@ -37,6 +37,22 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		"IsGitAppPresent",
 		path.Join(systemConfig.SourcesPath(), notPresentApp.Name),
 	).Return(false)
+	mockStorage.On(
+		"ExecutableExists",
+		path.Join(systemConfig.ArtifactsPath(), presentApp.Name),
+	).Return(true)
+	mockStorage.On(
+		"ExecutableExists",
+		path.Join(systemConfig.ArtifactsPath(), notPresentApp.Name),
+	).Return(true)
+	mockStorage.On(
+		"LinkExists",
+		path.Join(*systemConfig.BinaryDir, presentApp.Name),
+	).Return(true)
+	mockStorage.On(
+		"LinkExists",
+		path.Join(*systemConfig.BinaryDir, notPresentApp.Name),
+	).Return(true)
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
@@ -97,6 +113,8 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 
 	mockStorage := mocks.MockManagedFiles{}
 	mockStorage.On("IsGitAppPresent", mock.Anything).Return(false)
+	mockStorage.On("ExecutableExists", mock.Anything).Return(false)
+	mockStorage.On("LinkExists", mock.Anything).Return(false)
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,

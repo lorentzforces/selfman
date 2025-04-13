@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/lorentzforces/selfman/internal/data"
+	"github.com/lorentzforces/selfman/internal/data/mocks"
 	"github.com/lorentzforces/selfman/internal/ops"
 	"github.com/lorentzforces/selfman/internal/run"
 	"github.com/stretchr/testify/assert"
@@ -12,10 +13,11 @@ import (
 
 func TestUpdateCommandValidatesNameExists(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
+	mockStorage := mocks.MockManagedFiles{}
 	selfmanData := data.Selfman{
 		SystemConfig: systemConfig,
 		AppConfigs: map[string]data.AppConfig{},
-		Storage: nil,
+		Storage: &mockStorage,
 	}
 
 	_, err := installApp("not-available-name", selfmanData)
@@ -37,10 +39,11 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 		BuildCmd: run.StrPtr("make deez"),
 	}
 
+	mockStorage := mocks.MockManagedFiles{}
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{appToUpdate},
-		nil,
+		&mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
