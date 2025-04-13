@@ -44,9 +44,12 @@ func runUpdateCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 
 // TODO: check if app is even installed before trying to update it
 func updateApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
-	app, configured := selfmanData.AppConfigs[name]
-	if !configured {
+	app, status := selfmanData.AppStatus(name)
+	if !status.IsConfigured {
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
+	}
+	if !status.SourcePresent {
+		return nil, fmt.Errorf("Application \"%s\" has not been installed, no source present", name)
 	}
 
 	buildTargetPath := app.BuildTargetPath()

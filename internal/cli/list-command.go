@@ -32,7 +32,7 @@ func runListCmd(cmd *cobra.Command, args []string) error {
 
 type listResult struct {
 	name string
-	status data.AppStatus
+	status string
 }
 
 func (self listResult) String() string {
@@ -42,8 +42,8 @@ func (self listResult) String() string {
 func listApplications(selfmanData data.Selfman) []listResult {
 	results := make([]listResult, 0, len(selfmanData.AppConfigs))
 	for _, app := range selfmanData.AppConfigs {
-		status := selfmanData.AppStatus(app.Name)
-		results = append(results, listResult{name: app.Name, status: status})
+		_, status := selfmanData.AppStatus(app.Name)
+		results = append(results, listResult{name: app.Name, status: status.Label()})
 	}
 
 	slices.SortFunc(results, func(a, b listResult) int {

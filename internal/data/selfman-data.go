@@ -59,31 +59,61 @@ func SelfmanFromValues(
 	}, nil
 }
 
-type AppStatus string
+type AppStatus struct {
+	IsConfigured bool
+	SourcePresent bool
+	TargetPresent bool
+	LinkPresent bool
+}
+
+func (self AppStatus) FullyPresent() bool {
+	return self.IsConfigured && self.SourcePresent && self.TargetPresent && self.LinkPresent
+}
+
+func (self AppStatus) ConsistentState() bool {
+	return self.FullyPresent() || (
+		self.SourcePresent == self.TargetPresent &&
+		self.TargetPresent == self.LinkPresent)
+}
+
 const (
-	AppStatusNotConfigured AppStatus = "not configured"
-	AppStatusNotPresent AppStatus = "not present"
-	AppStatusPresent AppStatus = "present"
+	AppStatusLinkPresent = "installed & linked"
+	AppStatusInconsistent = "partially present - inconsistent state"
+	AppStatusIsConfigured = "not present"
+	AppStatusNotConfigured = "uknown app - not configured"
 )
 
-func (self Selfman) AppStatus(appName string) AppStatus {
+func (self AppStatus) Label() string {
+	switch {
+	case self.FullyPresent(): return AppStatusLinkPresent
+	case !self.ConsistentState(): return AppStatusInconsistent
+	case self.IsConfigured: return AppStatusIsConfigured
+	default: return AppStatusNotConfigured
+	}
+}
+
+// Given an app name, returns a detailed status regarding that app. If the app has a valid
+// configuration, will return
+//
+// NOTE: If AppStatus.IsConfigured is false, then AppConfig will be an invalid value.
+func (self Selfman) AppStatus(appName string) (AppConfig, AppStatus) {
 	foundApp, present := self.AppConfigs[appName]
-	if !present { return AppStatusNotConfigured }
-
-	appSourcePath := foundApp.SourcePath()
-	switch foundApp.Type {
-	case appTypeGit: {
-		appPresent := self.Storage.IsGitAppPresent(appSourcePath)
-		if appPresent {
-			return AppStatusPresent
-		} else {
-			return AppStatusNotPresent
-		}
-	}
+	if !present {
+		return AppConfig{}, AppStatus{}
 	}
 
-	run.FailOut(fmt.Sprintf("Undetermined case for app name: %s", appName))
-	panic("unreachable in theory")
+	statusReport := AppStatus{}
+	statusReport.IsConfigured = true
+	if foundApp.Type == appTypeGit {
+		statusReport.SourcePresent = self.Storage.IsGitAppPresent(foundApp.SourcePath())
+	} else {
+		statusReport.SourcePresent = self.Storage.DirExistsNotEmpty(foundApp.SourcePath())
+	}
+
+	statusReport.TargetPresent = self.Storage.ExecutableExists(foundApp.ArtifactPath())
+	statusReport.LinkPresent = self.Storage.LinkExists(foundApp.BinaryPath())
+
+	return foundApp, statusReport
 }
 
 func (self Selfman) VerifyAllDirectoriesExist() {

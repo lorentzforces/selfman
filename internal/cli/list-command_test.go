@@ -49,8 +49,8 @@ func TestAppStatusesAreReflected(t *testing.T) {
 	results := listApplications(selfmanData)
 
 	expected := []listResult{
-		{ name: presentApp.Name, status: data.AppStatusPresent },
-		{ name: notPresentApp.Name, status: data.AppStatusNotPresent },
+		{ name: presentApp.Name, status: data.AppStatusLinkPresent },
+		{ name: notPresentApp.Name, status: data.AppStatusNotConfigured },
 	}
 	assert.ElementsMatch(t, expected, results)
 }
@@ -109,11 +109,11 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	results := listApplications(selfmanData)
 
 	expected := []listResult{
-		{ name: alphaApp.Name, status: data.AppStatusNotPresent },
-		{ name: bravoApp.Name, status: data.AppStatusNotPresent },
-		{ name: charlieApp.Name, status: data.AppStatusNotPresent },
-		{ name: deltaApp.Name, status: data.AppStatusNotPresent },
-		{ name: foxtrotApp.Name, status: data.AppStatusNotPresent },
+		{ name: alphaApp.Name, status: data.AppStatusNotConfigured },
+		{ name: bravoApp.Name, status: data.AppStatusNotConfigured },
+		{ name: charlieApp.Name, status: data.AppStatusNotConfigured },
+		{ name: deltaApp.Name, status: data.AppStatusNotConfigured },
+		{ name: foxtrotApp.Name, status: data.AppStatusNotConfigured },
 	}
 	assert.Equal(t, expected, results)
 }
