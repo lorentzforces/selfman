@@ -13,6 +13,7 @@ import (
 
 func TestAppStatusesAreReflected(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
+
 	presentApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "PresentApp",
@@ -20,14 +21,6 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
-	notPresentApp := data.AppConfig{
-		SystemConfig: systemConfig,
-		Name: "NotPresentApp",
-		Type: "git",
-		RemoteRepo: run.StrPtr("doesn't matter"),
-		BuildAction: "none",
-	}
-
 	mockStorage := mocks.MockManagedFiles{}
 	mockStorage.On(
 		"IsGitAppPresent",
@@ -42,6 +35,13 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		path.Join(*systemConfig.BinaryDir, presentApp.Name),
 	).Return(true)
 
+	notPresentApp := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "NotPresentApp",
+		Type: "git",
+		RemoteRepo: run.StrPtr("doesn't matter"),
+		BuildAction: "none",
+	}
 	mockStorage.On(
 		"IsGitAppPresent",
 		path.Join(systemConfig.SourcesPath(), notPresentApp.Name),
@@ -55,9 +55,29 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		path.Join(*systemConfig.BinaryDir, notPresentApp.Name),
 	).Return(false)
 
+	inconsistentApp := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "InconsistentApp",
+		Type: "git",
+		RemoteRepo: run.StrPtr("doesn't matter"),
+		BuildAction: "none",
+	}
+	mockStorage.On(
+		"IsGitAppPresent",
+		path.Join(systemConfig.SourcesPath(), inconsistentApp.Name),
+	).Return(true)
+	mockStorage.On(
+		"ExecutableExists",
+		path.Join(systemConfig.ArtifactsPath(), inconsistentApp.Name),
+	).Return(true)
+	mockStorage.On(
+		"LinkExists",
+		path.Join(*systemConfig.BinaryDir, inconsistentApp.Name),
+	).Return(false)
+
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
-		[]data.AppConfig{presentApp, notPresentApp},
+		[]data.AppConfig{ presentApp, notPresentApp, inconsistentApp },
 		&mockStorage,
 	)
 	assert.NoError(t, err)
@@ -68,11 +88,10 @@ func TestAppStatusesAreReflected(t *testing.T) {
 	expected := []listResult{
 		{ name: presentApp.Name, status: data.AppStatusLinkPresent },
 		{ name: notPresentApp.Name, status: data.AppStatusIsConfigured },
+		{ name: inconsistentApp.Name, status: data.AppStatusInconsistent },
 	}
 	assert.ElementsMatch(t, expected, results)
 }
-
-// TODO: test some more conditions
 
 func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
