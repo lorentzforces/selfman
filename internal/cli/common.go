@@ -71,5 +71,3 @@ func dryRunOperations(actions []ops.Operation) {
 		fmt.Println(action.Describe())
 	}
 }
-
-var ErrAppNotConfigured = fmt.Errorf("Application is not configured")
