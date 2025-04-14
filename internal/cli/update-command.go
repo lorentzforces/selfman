@@ -42,7 +42,6 @@ func runUpdateCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	return ops, nil
 }
 
-// TODO: check if app is even installed before trying to update it
 func updateApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 	app, status := selfmanData.AppStatus(name)
 	if !status.IsConfigured {

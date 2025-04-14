@@ -20,10 +20,10 @@ func TestUpdateCommandValidatesNameExists(t *testing.T) {
 		Storage: &mockStorage,
 	}
 
-	_, err := installApp("not-available-name", selfmanData)
+	_, err := updateApp("not-available-name", selfmanData)
 	assert.Error(
 		t, err,
-		"An error must be thrown if the user attempts to install an application that is not " +
+		"An error must be thrown if the user attempts to update an application that is not " +
 			"configured",
 	)
 }
@@ -83,4 +83,45 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expectedActions, actions)
+}
+
+func TestUpdateCommandErrorsWithNonPresentApp(t *testing.T) {
+	systemConfig := data.DefaultTestConfig()
+	notPresentApp := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "not-present-app",
+		Type: "git",
+		RemoteRepo: run.StrPtr("doesn't matter"),
+		BuildAction: "script",
+		BuildCmd: run.StrPtr("make deez"),
+	}
+
+	mockStorage := mocks.MockManagedFiles{}
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{ notPresentApp },
+		&mockStorage,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	mockStorage.On(
+		"IsGitAppPresent",
+		path.Join(selfmanData.SystemConfig.SourcesPath(), notPresentApp.Name),
+	).Return(false)
+	mockStorage.On(
+		"ExecutableExists",
+		path.Join(selfmanData.SystemConfig.ArtifactsPath(), notPresentApp.Name),
+	).Return(false)
+	mockStorage.On(
+		"LinkExists",
+		path.Join(*selfmanData.SystemConfig.BinaryDir, notPresentApp.Name),
+	).Return(false)
+
+	_, err = updateApp(notPresentApp.Name, selfmanData)
+	assert.Error(
+		t, err,
+		"An error must be thrown if the user attempts to update an application which is configured " +
+			"but not present",
+	)
 }
