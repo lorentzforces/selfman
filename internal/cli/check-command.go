@@ -9,7 +9,7 @@ import (
 
 func CreateCheckCmd() *cobra.Command {
 	return &cobra.Command{
-		Use: "check",
+		Use: "check [flags] app-name",
 		Short: "Get detailed information about an application",
 		RunE: runCheckCmd,
 	}
@@ -24,20 +24,41 @@ func runCheckCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// TODO: return a result object with detailed info
-	err = checkApp(args[0], selfmanData)
+	result, err := checkApp(args[0], selfmanData)
+
+	if err == nil { fmt.Println(result) }
 
 	return err
 }
 
-func checkApp(name string, selfmanData data.Selfman) error {
+type checkAppResult struct {
+	appName string
+	status data.AppStatus
+}
+
+func (self checkAppResult) String() string {
+	return fmt.Sprintf(
+		"📋 %s\n\n" +
+		"Overall status: %s\n" +
+		"  Source present: %t\n" +
+		"  Target present: %t\n" +
+		"  Bin link present: %t\n",
+		self.appName, self.status.Label(), self.status.SourcePresent,
+		self.status.TargetPresent, self.status.LinkPresent,
+	)
+}
+
+func checkApp(name string, selfmanData data.Selfman) (checkAppResult, error) {
 	_, status := selfmanData.AppStatus(name)
 	if !status.IsConfigured {
-		return fmt.Errorf(
+		return checkAppResult{}, fmt.Errorf(
 			"Well, there's your problem: no configuration for an app named %s was found",
 			name,
 		)
 	}
 
-	return nil
+	return checkAppResult{
+		appName: name,
+		status: status,
+	}, nil
 }
