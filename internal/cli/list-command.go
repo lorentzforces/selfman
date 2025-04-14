@@ -11,12 +11,15 @@ import (
 func CreateListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use: "list",
-		Short: "List all applications managed by selfman (currently debug placeholder)",
+		Short: "List all applications managed by selfman",
 		RunE: runListCmd,
 	}
 }
 
 func runListCmd(cmd *cobra.Command, args []string) error {
+	if err := validatePrereqs(); err != nil {
+		return err
+	}
 	configData, err := data.Produce()
 	if err != nil {
 		return err
