@@ -34,25 +34,26 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		path.Join(systemConfig.SourcesPath(), presentApp.Name),
 	).Return(true)
 	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(systemConfig.SourcesPath(), notPresentApp.Name),
-	).Return(false)
-	mockStorage.On(
 		"ExecutableExists",
 		path.Join(systemConfig.ArtifactsPath(), presentApp.Name),
-	).Return(true)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(systemConfig.ArtifactsPath(), notPresentApp.Name),
 	).Return(true)
 	mockStorage.On(
 		"LinkExists",
 		path.Join(*systemConfig.BinaryDir, presentApp.Name),
 	).Return(true)
+
+	mockStorage.On(
+		"IsGitAppPresent",
+		path.Join(systemConfig.SourcesPath(), notPresentApp.Name),
+	).Return(false)
+	mockStorage.On(
+		"ExecutableExists",
+		path.Join(systemConfig.ArtifactsPath(), notPresentApp.Name),
+	).Return(false)
 	mockStorage.On(
 		"LinkExists",
 		path.Join(*systemConfig.BinaryDir, notPresentApp.Name),
-	).Return(true)
+	).Return(false)
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
@@ -66,10 +67,12 @@ func TestAppStatusesAreReflected(t *testing.T) {
 
 	expected := []listResult{
 		{ name: presentApp.Name, status: data.AppStatusLinkPresent },
-		{ name: notPresentApp.Name, status: data.AppStatusNotConfigured },
+		{ name: notPresentApp.Name, status: data.AppStatusIsConfigured },
 	}
 	assert.ElementsMatch(t, expected, results)
 }
+
+// TODO: test some more conditions
 
 func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
@@ -127,11 +130,11 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	results := listApplications(selfmanData)
 
 	expected := []listResult{
-		{ name: alphaApp.Name, status: data.AppStatusNotConfigured },
-		{ name: bravoApp.Name, status: data.AppStatusNotConfigured },
-		{ name: charlieApp.Name, status: data.AppStatusNotConfigured },
-		{ name: deltaApp.Name, status: data.AppStatusNotConfigured },
-		{ name: foxtrotApp.Name, status: data.AppStatusNotConfigured },
+		{ name: alphaApp.Name, status: data.AppStatusIsConfigured },
+		{ name: bravoApp.Name, status: data.AppStatusIsConfigured },
+		{ name: charlieApp.Name, status: data.AppStatusIsConfigured },
+		{ name: deltaApp.Name, status: data.AppStatusIsConfigured },
+		{ name: foxtrotApp.Name, status: data.AppStatusIsConfigured },
 	}
 	assert.Equal(t, expected, results)
 }

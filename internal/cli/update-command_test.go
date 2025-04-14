@@ -40,6 +40,7 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 	}
 
 	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.MockAllFilesPresent()
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{appToUpdate},

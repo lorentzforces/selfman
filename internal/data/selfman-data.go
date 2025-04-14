@@ -80,7 +80,7 @@ const (
 	AppStatusLinkPresent = "installed & linked"
 	AppStatusInconsistent = "partially present - inconsistent state"
 	AppStatusIsConfigured = "not present"
-	AppStatusNotConfigured = "uknown app - not configured"
+	AppStatusNotConfigured = "unknown app - not configured"
 )
 
 func (self AppStatus) Label() string {
