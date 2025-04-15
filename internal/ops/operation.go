@@ -36,8 +36,8 @@ const opDescriptionIndent string = "    "
 
 func (self OpDescription) buildString(buf *strings.Builder) {
 	buf.WriteString(self.TopLine)
-	buf.WriteString("\n")
 	for _, contextLine := range self.ContextLines {
+		buf.WriteString("\n")
 		buf.WriteString(opDescriptionIndent)
 		buf.WriteString(contextLine)
 	}

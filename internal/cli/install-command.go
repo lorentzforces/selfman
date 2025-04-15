@@ -42,10 +42,9 @@ func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	return ops, nil
 }
 
-// TODO: check if app is already installed
 func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
-	app, configured := selfmanData.AppConfigs[name]
-	if !configured {
+	app, appStatus := selfmanData.AppStatus(name)
+	if !appStatus.IsConfigured {
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
 	}
 
@@ -54,12 +53,20 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 	buildTargetPath := app.BuildTargetPath()
 	artifactPath := app.ArtifactPath()
 	binPath := app.BinaryPath()
-	buildOp := app.GetBuildOp()
-	actions := []ops.Operation{
-		ops.GitClone{
+
+	var getSourceOp ops.Operation
+	if appStatus.SourcePresent {
+		getSourceOp = ops.SkipCloneOp
+	} else {
+		getSourceOp = ops.GitClone{
 			RepoUrl: *app.RemoteRepo,
 			DestinationPath: repoPath,
-		},
+		}
+	}
+	buildOp := app.GetBuildOp()
+
+	actions := []ops.Operation{
+		getSourceOp,
 		buildOp,
 		ops.MoveTarget{
 			SourcePath: buildTargetPath,

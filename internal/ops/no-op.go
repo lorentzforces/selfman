@@ -20,6 +20,11 @@ func (self NoOp) Describe() OpDescription {
 	}
 }
 
+var SkipCloneOp = NoOp{
+	TypeOfNoOp: "clone",
+	Description: "Skipping git clone, source already present",
+}
+
 var NoBuildOp = NoOp{
 	TypeOfNoOp: "build",
 	Description: "This application does not need to be built",
