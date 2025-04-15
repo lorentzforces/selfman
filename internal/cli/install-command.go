@@ -35,9 +35,7 @@ func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	}
 
 	ops, err := installApp(args[0], selfmanData)
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 
 	return ops, nil
 }

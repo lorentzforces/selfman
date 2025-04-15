@@ -24,6 +24,9 @@ func runCheckCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if len(args) < 1 {
+		return fmt.Errorf("Check command expects an application name, but one was not provided")
+	}
 	result, err := checkApp(args[0], selfmanData)
 
 	if err == nil { fmt.Println(result) }
