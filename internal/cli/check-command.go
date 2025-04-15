@@ -16,13 +16,9 @@ func CreateCheckCmd() *cobra.Command {
 }
 
 func runCheckCmd(cmd *cobra.Command, args []string) error {
-	if err := validatePrereqs(); err != nil {
-		return err
-	}
+	if err := validatePrereqs(); err != nil { return err }
 	selfmanData, err := data.Produce()
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 
 	if len(args) < 1 {
 		return fmt.Errorf("Check command expects an application name, but one was not provided")

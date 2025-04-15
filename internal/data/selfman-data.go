@@ -15,19 +15,13 @@ type Selfman struct {
 
 func Produce() (Selfman, error) {
 	systemConfig, err := loadSystemConfig()
-	if err != nil {
-		return Selfman{}, err
-	}
+	if err != nil { return Selfman{}, err }
 
 	appConfigs, err := loadAppConfigs(&systemConfig)
-	if err != nil {
-		return Selfman{}, err
-	}
+	if err != nil { return Selfman{}, err }
 
 	selfman, err := SelfmanFromValues(&systemConfig, appConfigs, &OnDiskManagedFiles{})
-	if err != nil {
-		return Selfman{}, err
-	}
+	if err != nil { return Selfman{}, err }
 
 	selfman.VerifyAllDirectoriesExist()
 	return selfman, nil
@@ -98,9 +92,7 @@ func (self AppStatus) Label() string {
 // NOTE: If AppStatus.IsConfigured is false, then AppConfig will be an invalid value.
 func (self Selfman) AppStatus(appName string) (AppConfig, AppStatus) {
 	foundApp, present := self.AppConfigs[appName]
-	if !present {
-		return AppConfig{}, AppStatus{}
-	}
+	if !present { return AppConfig{}, AppStatus{} }
 
 	statusReport := AppStatus{}
 	statusReport.IsConfigured = true

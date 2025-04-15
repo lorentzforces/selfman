@@ -28,7 +28,7 @@ const (
 type AppConfig struct {
 	SystemConfig *SystemConfig `yaml:"-"`
 	Name string
-	Type string
+	Type string // TODO: change this to "intake type?"
 	InstallAction string `yaml:"install-action"`
 	BuildAction string `yaml:"build-action"`
 	BuildTarget string `yaml:"build-target"`
@@ -106,9 +106,7 @@ func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 
 func (self *AppConfig) HasExistingArtifactLink() bool {
 	stat, err := os.Lstat(self.BinaryPath())
-	if err != nil {
-		return false
-	}
+	if err != nil { return false }
 
 	// TODO: what if there IS a file and it's not the right file?
 
@@ -222,9 +220,8 @@ func loadAppConfigs(systemConfig *SystemConfig) ([]AppConfig, error) {
 	appConfigs := make([]AppConfig, 0, len(appConfigPaths))
 	for _, path := range appConfigPaths {
 		appConfig, err := parseAppConfig(path)
-		if err != nil {
-			return nil, err
-		}
+		if err != nil { return nil, err }
+
 		appConfig.SystemConfig = systemConfig
 		appConfigs = append(appConfigs, appConfig)
 	}

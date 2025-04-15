@@ -28,8 +28,8 @@ func CreateRootCmd() *cobra.Command {
 	rootCmd.AddCommand(CreateInstallCmd().cobraCmd)
 	rootCmd.AddCommand(CreateUpdateCmd().cobraCmd)
 	rootCmd.AddCommand(CreateCheckCmd())
+	rootCmd.AddCommand(CreateRemoveCmd().cobraCmd)
 	// TODO: intake binary for static-binary app
-	// TODO: uninstall
 	// TODO(?): rollback?
 	// TODO(?): list previous versions?
 	// TODO: some kind of validation command for configuration? (roll into check?)

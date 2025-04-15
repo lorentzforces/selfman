@@ -29,9 +29,7 @@ func loadSystemConfig() (SystemConfig, error) {
 
 	defaultConfig := defaultConfig()
 
-	if len(path) == 0 {
-		return defaultConfig, nil
-	}
+	if len(path) == 0 { return defaultConfig, nil }
 
 	configBytes, err := os.ReadFile(path)
 	run.AssertNoErrReason(err, "Config file was resolved but later reading failed")
@@ -85,12 +83,8 @@ func resolveConfigPath(configEnvName string) (string, error) {
 func checkFileAtPath(path string) (foundFile bool, err error) {
 	file, err := os.Open(path)
 	defer file.Close()
-	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
-	}
-	if err != nil {
-		return true, err
-	}
+	if errors.Is(err, os.ErrNotExist) { return false, nil }
+	if err != nil { return true, err }
 
 	// in theory if the above succeeded, this cannot fail
 	fileStat, err := os.Stat(path)

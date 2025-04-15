@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateRemoveCommand() SelfmanCommand {
+func CreateRemoveCmd() SelfmanCommand {
 	cmd := SelfmanCommand{
 		cobraCmd: &cobra.Command{
 			Use: "remove [flags] app-name",
@@ -21,13 +21,9 @@ func CreateRemoveCommand() SelfmanCommand {
 }
 
 func runRemoveCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
-	if err := validatePrereqs(); err != nil {
-		return nil, err
-	}
+	if err := validatePrereqs(); err != nil { return nil, err }
 	selfmanData, err := data.Produce()
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 
 	if len(args) < 1 {
 		return nil,

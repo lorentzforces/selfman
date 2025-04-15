@@ -21,13 +21,9 @@ func CreateInstallCmd() SelfmanCommand {
 }
 
 func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
-	if err := validatePrereqs(); err != nil {
-		return nil, err
-	}
+	if err := validatePrereqs(); err != nil { return nil, err }
 	selfmanData, err := data.Produce()
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 
 	if len(args) < 1 {
 		return nil,

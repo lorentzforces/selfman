@@ -28,9 +28,7 @@ func (self *SelfmanCommand) InitCobraFunctions() {
 
 func (self *SelfmanCommand) RunMutatingSelfmanCmd(cmd *cobra.Command, args []string) error {
 	actions, err := self.opsCmd(cmd, args)
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 
 	dryRun, err := cmd.Flags().GetBool(globalOptionDryRun)
 	run.AssertNoErr(err)
@@ -49,10 +47,7 @@ func executeOperations(actions []ops.Operation) error {
 	for _, action := range actions {
 		fmt.Fprintln(os.Stderr, action.Describe())
 		msg, err := action.Execute()
-
-		if err != nil {
-			return err
-		}
+		if err != nil { return err }
 
 		fmt.Printf("✓")
 		if len(msg) > 0 {

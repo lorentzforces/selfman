@@ -17,13 +17,9 @@ func CreateListCmd() *cobra.Command {
 }
 
 func runListCmd(cmd *cobra.Command, args []string) error {
-	if err := validatePrereqs(); err != nil {
-		return err
-	}
+	if err := validatePrereqs(); err != nil { return err }
 	configData, err := data.Produce()
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 
 	// TODO: use tabwriter or something similar to format this better
 	results := listApplications(configData)

@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	// TODO: verify prerequisites here?
 	err := cli.CreateRootCmd().Execute()
 	run.FailOnErr(err)
 }

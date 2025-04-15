@@ -21,13 +21,10 @@ func CreateUpdateCmd() SelfmanCommand {
 }
 
 func runUpdateCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
-	if err := validatePrereqs(); err != nil {
-		return nil, err
+	if err := validatePrereqs(); err != nil { return nil, err
 	}
 	selfmanData, err := data.Produce()
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 
 	if len(args) < 1 {
 		return nil,
@@ -35,9 +32,7 @@ func runUpdateCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	}
 
 	ops, err := updateApp(args[0], selfmanData)
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 
 	return ops, nil
 }

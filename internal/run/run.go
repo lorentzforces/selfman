@@ -39,16 +39,12 @@ func AssertNoErrReason(err error, reason string) {
 }
 
 func Coalesce[T any](a, b *T) *T {
-	if a == nil {
-		return b
-	}
+	if a == nil { return b }
 	return a
 }
 
 func CoalesceString(a, b string) string {
-	if len(a) == 0 {
-		return b
-	}
+	if len(a) == 0 { return b }
 	return a
 }
 
