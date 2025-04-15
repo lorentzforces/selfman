@@ -3,6 +3,8 @@ package run
 import (
 	"fmt"
 	"os"
+
+	"github.com/lorentzforces/fresh-err/fresherr"
 )
 
 func FailOut(msg string) {
@@ -18,7 +20,7 @@ func FailOnErr(err error) {
 }
 
 func ErrMsg(msg string) string {
-	return "ERROR: " + msg
+	return fresherr.GetFresh() + ": " + msg
 }
 
 func Assert(condition bool, more any) {

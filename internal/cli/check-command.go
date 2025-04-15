@@ -17,7 +17,7 @@ func CreateCheckCmd() *cobra.Command {
 
 func runCheckCmd(cmd *cobra.Command, args []string) error {
 	if err := validatePrereqs(); err != nil {
-		return fmt.Errorf("Well, there's your problem: %w", err)
+		return err
 	}
 	selfmanData, err := data.Produce()
 	if err != nil {
@@ -52,7 +52,7 @@ func checkApp(name string, selfmanData data.Selfman) (checkAppResult, error) {
 	_, status := selfmanData.AppStatus(name)
 	if !status.IsConfigured {
 		return checkAppResult{}, fmt.Errorf(
-			"Well, there's your problem: no configuration for an app named %s was found",
+			"No configuration for an app named %s was found",
 			name,
 		)
 	}

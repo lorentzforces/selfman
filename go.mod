@@ -1,8 +1,9 @@
 module github.com/lorentzforces/selfman
 
-go 1.23.3
+go 1.23.5
 
 require (
+	github.com/lorentzforces/fresh-err v0.0.0-20250414235312-07366ced921c
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/sys v0.32.0
