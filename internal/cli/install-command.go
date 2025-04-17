@@ -9,18 +9,16 @@ import (
 )
 
 func CreateInstallCmd() SelfmanCommand {
-	cmd := SelfmanCommand{
+	return SelfmanCommand{
 		cobraCmd: &cobra.Command{
 			Use: "install [flags] app-name",
 			Short: "Install an application with a pre-existing configuration file",
 		},
-		opsCmd: runInstallCmd,
+		runFunc: runInstallCmd,
 	}
-	cmd.InitCobraFunctions()
-	return cmd
 }
 
-func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
+func runInstallCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 	if err := validatePrereqs(); err != nil { return nil, err }
 	selfmanData, err := data.Produce()
 	if err != nil { return nil, err }
@@ -33,7 +31,10 @@ func runInstallCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	ops, err := installApp(args[0], selfmanData)
 	if err != nil { return nil, err }
 
-	return ops, nil
+	return &SelfmanResult{
+		textOutput: nil,
+		operations: ops,
+	}, nil
 }
 
 func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {

@@ -7,27 +7,32 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateCheckCmd() *cobra.Command {
-	return &cobra.Command{
-		Use: "check [flags] app-name",
-		Short: "Get detailed information about an application",
-		RunE: runCheckCmd,
+func CreateCheckCmd() SelfmanCommand {
+	return SelfmanCommand{
+		cobraCmd: &cobra.Command{
+			Use: "check [flags] app-name",
+			Short: "Get detailed information about an application",
+		},
+		runFunc: runCheckCmd,
 	}
 }
 
-func runCheckCmd(cmd *cobra.Command, args []string) error {
-	if err := validatePrereqs(); err != nil { return err }
+func runCheckCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
+	if err := validatePrereqs(); err != nil { return nil, err }
 	selfmanData, err := data.Produce()
-	if err != nil { return err }
+	if err != nil { return nil, err }
 
 	if len(args) < 1 {
-		return fmt.Errorf("Check command expects an application name, but one was not provided")
+		return nil,
+			fmt.Errorf("Check command expects an application name, but one was not provided")
 	}
 	result, err := checkApp(args[0], selfmanData)
+	if err != nil { return nil, err }
 
-	if err == nil { fmt.Println(result) }
-
-	return err
+	return &SelfmanResult{
+		textOutput: result,
+		operations: nil,
+	}, nil
 }
 
 type checkAppResult struct {

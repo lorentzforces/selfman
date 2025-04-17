@@ -9,18 +9,16 @@ import (
 )
 
 func CreateUpdateCmd() SelfmanCommand {
-	cmd := SelfmanCommand{
+	return SelfmanCommand{
 		cobraCmd: &cobra.Command{
 			Use: "update [flags] app-name",
 			Short: "Update the given application",
 		},
-		opsCmd: runUpdateCmd,
+		runFunc: runUpdateCmd,
 	}
-	cmd.InitCobraFunctions()
-	return cmd
 }
 
-func runUpdateCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
+func runUpdateCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 	if err := validatePrereqs(); err != nil { return nil, err
 	}
 	selfmanData, err := data.Produce()
@@ -34,7 +32,10 @@ func runUpdateCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	ops, err := updateApp(args[0], selfmanData)
 	if err != nil { return nil, err }
 
-	return ops, nil
+	return &SelfmanResult{
+		textOutput: nil,
+		operations: ops,
+	}, nil
 }
 
 func updateApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {

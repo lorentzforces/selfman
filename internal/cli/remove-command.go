@@ -9,18 +9,16 @@ import (
 )
 
 func CreateRemoveCmd() SelfmanCommand {
-	cmd := SelfmanCommand{
+	return SelfmanCommand{
 		cobraCmd: &cobra.Command{
 			Use: "remove [flags] app-name",
 			Short: "Remove an application's files managed by selfman",
 		},
-		opsCmd: runRemoveCmd,
+		runFunc: runRemoveCmd,
 	}
-	cmd.InitCobraFunctions()
-	return cmd
 }
 
-func runRemoveCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
+func runRemoveCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 	if err := validatePrereqs(); err != nil { return nil, err }
 	selfmanData, err := data.Produce()
 	if err != nil { return nil, err }
@@ -32,7 +30,10 @@ func runRemoveCmd(cmd *cobra.Command, args []string) ([]ops.Operation, error) {
 	ops, err := removeApp(args[0], selfmanData)
 	if err != nil { return nil, err }
 
-	return ops, nil
+	return &SelfmanResult{
+		textOutput: nil,
+		operations: ops,
+	}, nil
 }
 
 func removeApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {

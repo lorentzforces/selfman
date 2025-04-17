@@ -24,15 +24,27 @@ func CreateRootCmd() *cobra.Command {
 			"executing them",
 	)
 
-	rootCmd.AddCommand(CreateListCmd())
-	rootCmd.AddCommand(CreateInstallCmd().cobraCmd)
-	rootCmd.AddCommand(CreateUpdateCmd().cobraCmd)
-	rootCmd.AddCommand(CreateCheckCmd())
-	rootCmd.AddCommand(CreateRemoveCmd().cobraCmd)
+	addSelfmanCommands(
+		rootCmd,
+		[]SelfmanCommand{
+			CreateListCmd(),
+			CreateInstallCmd(),
+			CreateUpdateCmd(),
+			CreateCheckCmd(),
+			CreateRemoveCmd(),
+		},
+	)
 	// TODO: intake binary for static-binary app
 	// TODO(?): rollback?
 	// TODO(?): list previous versions?
 	// TODO: some kind of validation command for configuration? (roll into check?)
 
 	return rootCmd
+}
+
+func addSelfmanCommands(rootCmd *cobra.Command, cmds []SelfmanCommand) {
+	for _, cmd := range cmds {
+		cmd.cobraCmd.RunE = cmd.RunSelfmanCommand
+		rootCmd.AddCommand(cmd.cobraCmd)
+	}
 }

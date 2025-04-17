@@ -19,25 +19,32 @@ func validatePrereqs() error {
 
 type SelfmanCommand struct {
 	cobraCmd *cobra.Command
-	opsCmd func(*cobra.Command, []string) ([]ops.Operation, error)
+	runFunc func(*cobra.Command, []string) (*SelfmanResult, error)
 }
 
-func (self *SelfmanCommand) InitCobraFunctions() {
-	self.cobraCmd.RunE = self.RunMutatingSelfmanCmd
+type SelfmanResult struct {
+	// Text output is always printed before any other messages
+	textOutput fmt.Stringer
+	// Any mutating operations to be executed as a result of running this command
+	operations []ops.Operation
 }
 
-func (self *SelfmanCommand) RunMutatingSelfmanCmd(cmd *cobra.Command, args []string) error {
-	actions, err := self.opsCmd(cmd, args)
+func (self *SelfmanCommand) RunSelfmanCommand(cmd *cobra.Command, args []string) error {
+	cmdResult, err := self.runFunc(cmd, args)
 	if err != nil { return err }
 
 	dryRun, err := cmd.Flags().GetBool(globalOptionDryRun)
 	run.AssertNoErr(err)
 
+	if cmdResult.textOutput != nil {
+		fmt.Println(cmdResult.textOutput)
+	}
+
 	if dryRun {
-		dryRunOperations(actions)
+		dryRunOperations(cmdResult.operations)
 		return nil
 	} else {
-		return executeOperations(actions)
+		return executeOperations(cmdResult.operations)
 	}
 }
 

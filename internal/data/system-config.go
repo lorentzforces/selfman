@@ -56,7 +56,11 @@ func loadSystemConfig() (SystemConfig, error) {
 func resolveConfigPath(configEnvName string) (string, error) {
 	configEnvPath := os.Getenv(configEnvName)
 	if len(configEnvPath) > 0 {
-		_, err := checkFileAtPath(configEnvPath)
+		found, err := checkFileAtPath(configEnvPath)
+		if !found {
+			return "", fmt.Errorf(
+				"Configuration path was specified in env var %s but was not found", configEnvName)
+		}
 		if err != nil {
 			return "", fmt.Errorf(
 				"Configuration path was specified in env var %s but was not readable: %w",
@@ -83,8 +87,12 @@ func resolveConfigPath(configEnvName string) (string, error) {
 func checkFileAtPath(path string) (foundFile bool, err error) {
 	file, err := os.Open(path)
 	defer file.Close()
-	if errors.Is(err, os.ErrNotExist) { return false, nil }
-	if err != nil { return true, err }
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return true, err
+	}
 
 	// in theory if the above succeeded, this cannot fail
 	fileStat, err := os.Stat(path)
