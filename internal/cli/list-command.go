@@ -25,9 +25,6 @@ func runListCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 	if err != nil { return nil, err }
 
 	results := listApplications(configData)
-	for _, result := range results {
-		fmt.Println(result)
-	}
 	return &SelfmanResult{
 		textOutput: listCmdResult{ results },
 		operations: nil,
@@ -42,7 +39,7 @@ type listCmdResult struct {
 func (self listCmdResult) String() string {
 	var buf strings.Builder
 	for _, result := range self.results {
-		buf.WriteString(fmt.Sprintf("%s (%s)", result.name, result.status))
+		buf.WriteString(fmt.Sprintf("%s (%s)\n", result.name, result.status))
 	}
 
 	return buf.String()
