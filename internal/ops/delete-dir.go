@@ -14,6 +14,7 @@ type DeleteDir struct {
 func (self DeleteDir) Execute() (string, error) {
 	stat, err := os.Stat(self.Path)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
+		// TODO: should this be a success if the directory already doesn't exist?
 		return "", fmt.Errorf("Dir to delete does not exist: %s", self.Path)
 	} else if err != nil {
 		return "", fmt.Errorf("Delete dir failed: %w", err)
