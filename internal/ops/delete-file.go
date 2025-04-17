@@ -12,9 +12,9 @@ type DeleteFile struct {
 }
 
 func (self DeleteFile) Execute() (string, error) {
-	stat, err := os.Stat(self.Path)
+	stat, err := os.Lstat(self.Path)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
-		return "", fmt.Errorf("File to delete does not exist: %s", self.Path)
+		return "Deleted file (already gone)", nil
 	} else if err != nil {
 		return "", fmt.Errorf("Delete file failed: %w", err)
 	}
