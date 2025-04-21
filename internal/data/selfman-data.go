@@ -13,6 +13,7 @@ type Selfman struct {
 	Storage ManagedFiles
 }
 
+// TODO: surface an error if a config file has an extra property set which the program doesn't recognize
 func Produce() (Selfman, error) {
 	systemConfig, err := loadSystemConfig()
 	if err != nil { return Selfman{}, err }
