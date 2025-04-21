@@ -15,6 +15,8 @@ import (
 
 const (
 	appTypeGit = "git"
+	// TODO: web-fetch
+	// TODO: bare-binary
 
 	actionNone = "none"
 
@@ -28,7 +30,7 @@ const (
 type AppConfig struct {
 	SystemConfig *SystemConfig `yaml:"-"`
 	Name string
-	Type string // TODO: change this to "intake type?"
+	BaseType string `yaml:"base-type"`
 	InstallAction string `yaml:"install-action"`
 	BuildAction string `yaml:"build-action"`
 	BuildTarget string `yaml:"build-target"`
@@ -124,10 +126,10 @@ func (self *AppConfig) applyDefaults() {
 
 	// TODO: create full structs of default configs for, say a git-based app, and then coalesce that
 	// as a full default config (then apply name-dependent defaults)
-	if self.Type == appTypeGit && self.InstallAction == "" {
+	if self.BaseType == appTypeGit && self.InstallAction == "" {
 		self.InstallAction = installActionGitClone
 	}
-	if self.Type == appTypeGit && self.UpdateAction == "" {
+	if self.BaseType == appTypeGit && self.UpdateAction == "" {
 		self.UpdateAction = updateActionGitPull
 	}
 }
@@ -139,7 +141,7 @@ func (self *AppConfig) validate() error {
 	}
 
 	if !self.isValidAppType() {
-		return fmt.Errorf("(app %s) Invalid application type: %s", self.Name, self.Type)
+		return fmt.Errorf("(app %s) Invalid application type: %s", self.Name, self.BaseType)
 	}
 
 	if !self.isValidBuildAction() {
@@ -150,7 +152,7 @@ func (self *AppConfig) validate() error {
 		return fmt.Errorf("(app %s) Invalid install action: %s", self.Name, self.InstallAction)
 	}
 
-	if self.Type == "git" && self.RemoteRepo == nil {
+	if self.BaseType == "git" && self.RemoteRepo == nil {
 		return fmt.Errorf("(app %s) Remote repo must be specified for apps of type git", self.Name)
 	}
 
@@ -158,7 +160,7 @@ func (self *AppConfig) validate() error {
 }
 
 func (self *AppConfig) isValidAppType() bool {
-	switch self.Type {
+	switch self.BaseType {
 	case appTypeGit: return true
 	default: return false
 	}

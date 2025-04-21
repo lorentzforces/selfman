@@ -17,7 +17,7 @@ func TestAppStatusesAreReflected(t *testing.T) {
 	presentApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "PresentApp",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
@@ -38,7 +38,7 @@ func TestAppStatusesAreReflected(t *testing.T) {
 	notPresentApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "NotPresentApp",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
@@ -58,7 +58,7 @@ func TestAppStatusesAreReflected(t *testing.T) {
 	inconsistentApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "InconsistentApp",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
@@ -100,35 +100,35 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	alphaApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "alpha",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
 	}
 	bravoApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "bravo",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
 	}
 	charlieApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "charlie",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
 	}
 	deltaApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "delta",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
 	}
 	foxtrotApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "foxtrot",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
 	}

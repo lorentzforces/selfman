@@ -33,7 +33,7 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 	appToUpdate := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "updatable-app",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "script",
 		BuildCmd: run.StrPtr("make deez"),
@@ -90,7 +90,7 @@ func TestUpdateCommandErrorsWithNonPresentApp(t *testing.T) {
 	notPresentApp := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "not-present-app",
-		Type: "git",
+		BaseType: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "script",
 		BuildCmd: run.StrPtr("make deez"),

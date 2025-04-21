@@ -1,5 +1,5 @@
 name: 'test-app-II'
-type: git
+base-type: git
 remote-repo: 'git@github.com:github/gitignore.git'
 build-target: Go.gitignore
 build-action: none

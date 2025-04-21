@@ -96,7 +96,7 @@ func (self Selfman) AppStatus(appName string) (AppConfig, AppStatus) {
 
 	statusReport := AppStatus{}
 	statusReport.IsConfigured = true
-	if foundApp.Type == appTypeGit {
+	if foundApp.BaseType == appTypeGit {
 		statusReport.SourcePresent = self.Storage.IsGitAppPresent(foundApp.SourcePath())
 	} else {
 		statusReport.SourcePresent = self.Storage.DirExistsNotEmpty(foundApp.SourcePath())
