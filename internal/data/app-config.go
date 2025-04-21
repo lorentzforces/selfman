@@ -210,7 +210,7 @@ func loadAppConfigs(systemConfig *SystemConfig) ([]AppConfig, error) {
 	appConfigPaths := make([]string, 0)
 	entries, err := os.ReadDir(*systemConfig.AppConfigDir)
 	for _, entry := range entries {
-		if !entry.Type().IsRegular() {
+		if entry.Type().IsDir() {
 			continue
 		}
 		if isAppConfigFileName(entry.Name()) {
