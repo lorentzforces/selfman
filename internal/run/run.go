@@ -2,9 +2,11 @@ package run
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/lorentzforces/fresh-err/fresherr"
+	"gopkg.in/yaml.v3"
 )
 
 func FailOut(msg string) {
@@ -60,4 +62,10 @@ var ErrNotImplemented = fmt.Errorf("Not yet implemented")
 
 func VerifyDirExists(path string) error {
 	return os.MkdirAll(path, os.ModePerm)
+}
+
+func GetStrictDecoder(source io.Reader) *yaml.Decoder {
+	decoder := yaml.NewDecoder(source)
+	decoder.KnownFields(true)
+	return decoder
 }

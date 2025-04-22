@@ -10,7 +10,6 @@ import (
 
 	"github.com/lorentzforces/selfman/internal/ops"
 	"github.com/lorentzforces/selfman/internal/run"
-	yaml "gopkg.in/yaml.v3"
 )
 
 const (
@@ -238,11 +237,11 @@ func isAppConfigFileName(fileName string) bool {
 }
 
 func parseAppConfig(appConfigPath string) (AppConfig, error) {
-	configBytes, err := os.ReadFile(appConfigPath)
+	configFile, err := os.Open(appConfigPath)
 	run.AssertNoErr(err)
 
 	appConfig := AppConfig{}
-	err = yaml.Unmarshal(configBytes, &appConfig)
+	err = run.GetStrictDecoder(configFile).Decode(&appConfig)
 	if err != nil {
 		newErr := fmt.Errorf(
 			"Error parsing application config file \"%s\"",

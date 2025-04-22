@@ -7,7 +7,6 @@ import (
 	"path"
 
 	"github.com/lorentzforces/selfman/internal/run"
-	yaml "gopkg.in/yaml.v3"
 )
 
 const ConfigurationEnvVar = "SELFMAN_CONFIG"
@@ -31,10 +30,10 @@ func loadSystemConfig() (SystemConfig, error) {
 
 	if len(path) == 0 { return defaultConfig, nil }
 
-	configBytes, err := os.ReadFile(path)
+	configFile, err := os.Open(path)
 	run.AssertNoErrReason(err, "Config file was resolved but later reading failed")
 	configData := SystemConfig{}
-	err = yaml.Unmarshal(configBytes, &configData)
+	err = run.GetStrictDecoder(configFile).Decode(&configData)
 	if err != nil {
 		return SystemConfig{}, fmt.Errorf("Error parsing config file: %w", err)
 	}
