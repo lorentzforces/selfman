@@ -34,7 +34,7 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 	appWithStatus := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "high-status-app",
-		BaseType: "git",
+		Flavor: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}

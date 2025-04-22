@@ -13,29 +13,34 @@ import (
 )
 
 const (
-	appTypeGit = "git"
-	// TODO: web-fetch
-	// TODO: bare-binary
+	flavorGit = "git"
+	flavorWebFetch = "web-fetch"
+	// TODO: binaryFile
 
 	actionNone = "none"
 
+	installActionGitClone = "git-clone"
+	installActionWebDownload = "web-download"
+
+	// TODO: select version
+
 	buildActionScript = "script"
 
-	installActionGitClone = "git-clone"
 	updateActionGitPull = "git-pull"
 )
 
 // TODO: do we want to continue using the same struct for serialization and runtime usage?
+// TODO: version-label (and then how do we track version history?)
+// TODO: make some form of config file with explainers (potentially accessible via command)
 type AppConfig struct {
 	SystemConfig *SystemConfig `yaml:"-"`
 	Name string
-	BaseType string `yaml:"base-type"`
-	InstallAction string `yaml:"install-action"`
+	Flavor string
 	BuildAction string `yaml:"build-action"`
 	BuildTarget string `yaml:"build-target"`
 	RemoteRepo *string `yaml:"remote-repo,omitempty"`
 	BuildCmd *string `yaml:"build-cmd,omitempty"`
-	UpdateAction string `yaml:"update-action"`
+	WebUrl *string `yaml:"web-url,omitempty"`
 }
 
 func (self *AppConfig) SourcePath() string {
@@ -55,18 +60,19 @@ func (self *AppConfig) BinaryPath() string {
 }
 
 func (self *AppConfig) GetInstallOp() ops.Operation {
-	switch self.InstallAction{
-	case installActionGitClone: {
+	switch self.Flavor{
+	case flavorGit: {
 		return ops.GitClone{
 			RepoUrl: *self.RemoteRepo,
 			DestinationPath: self.BuildTarget,
 		}
 	}
+	// TODO: flavorWebFetch
 	}
 
 	run.FailOut(fmt.Sprintf(
-		"Unhandled install action -> operation mapping: %s",
-		self.InstallAction,
+		"Unhandled app flavor -> operation mapping: %s",
+		self.Flavor,
 	))
 	panic("Unreachable in theory")
 }
@@ -90,18 +96,16 @@ func (self *AppConfig) GetBuildOp() ops.Operation {
 }
 
 func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
-	switch self.UpdateAction {
-	case actionNone: {
-		return ops.NoUpdateOp
-	}
-	case updateActionGitPull: {
+	switch self.Flavor {
+	case flavorGit: {
 		return ops.GitPull{
 			RepoPath: self.SourcePath(),
 		}
 	}
+	// TODO: flavorWebFetch
 	}
 
-	run.FailOut(fmt.Sprintf("Unhandled update action -> operation mapping: %s", self.UpdateAction))
+	run.FailOut(fmt.Sprintf("Unhandled app flavor -> operation mapping: %s", self.Flavor))
 	panic("Unreachable in theory")
 }
 
@@ -122,15 +126,6 @@ func (self *AppConfig) applyDefaults() {
 	if len(self.BuildTarget) == 0 {
 		self.BuildTarget = strings.ToLower(self.Name)
 	}
-
-	// TODO: create full structs of default configs for, say a git-based app, and then coalesce that
-	// as a full default config (then apply name-dependent defaults)
-	if self.BaseType == appTypeGit && self.InstallAction == "" {
-		self.InstallAction = installActionGitClone
-	}
-	if self.BaseType == appTypeGit && self.UpdateAction == "" {
-		self.UpdateAction = updateActionGitPull
-	}
 }
 
 // Validates an application config - error will be non-nil if validation failed.
@@ -139,28 +134,29 @@ func (self *AppConfig) validate() error {
 		return fmt.Errorf("Application name cannot be empty")
 	}
 
-	if !self.isValidAppType() {
-		return fmt.Errorf("(app %s) Invalid application type: %s", self.Name, self.BaseType)
+	if !self.isValidAppFlavor() {
+		return fmt.Errorf("(app %s) Invalid application flavor: %s", self.Name, self.Flavor)
 	}
 
 	if !self.isValidBuildAction() {
 		return fmt.Errorf("(app %s) Invalid build action: %s", self.Name, self.BuildAction)
 	}
 
-	if !self.isValidInstallAction() {
-		return fmt.Errorf("(app %s) Invalid install action: %s", self.Name, self.InstallAction)
+	if self.Flavor == flavorGit && self.RemoteRepo == nil {
+		return fmt.Errorf("(app %s) Remote repo must be specified for apps of flavor %s", self.Name, flavorGit)
 	}
 
-	if self.BaseType == "git" && self.RemoteRepo == nil {
-		return fmt.Errorf("(app %s) Remote repo must be specified for apps of type git", self.Name)
+	if self.Flavor == flavorWebFetch && self.WebUrl == nil {
+		return fmt.Errorf("(app %s) Web URL must be specified for apps of flavor %s", self.Name, flavorWebFetch)
 	}
 
 	return nil
 }
 
-func (self *AppConfig) isValidAppType() bool {
-	switch self.BaseType {
-	case appTypeGit: return true
+func (self *AppConfig) isValidAppFlavor() bool {
+	switch self.Flavor {
+	case flavorGit: return true
+	case flavorWebFetch: return true
 	default: return false
 	}
 }
@@ -168,20 +164,6 @@ func (self *AppConfig) isValidAppType() bool {
 func (self *AppConfig) isValidBuildAction() bool {
 	switch self.BuildAction {
 	case actionNone, buildActionScript: return true
-	default: return false
-	}
-}
-
-func (self *AppConfig) isValidInstallAction() bool {
-	switch self.InstallAction {
-	case installActionGitClone: return true
-	default: return false
-	}
-}
-
-func (self *AppConfig) isValidUpdateAction() bool {
-	switch self.UpdateAction {
-	case actionNone, updateActionGitPull: return true
 	default: return false
 	}
 }

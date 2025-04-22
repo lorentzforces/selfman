@@ -1,10 +1,12 @@
 package data
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
 
+	"github.com/lorentzforces/selfman/internal/run"
 	"golang.org/x/sys/unix"
 )
 
@@ -13,6 +15,7 @@ type ManagedFiles interface {
 	DirExistsNotEmpty(path string) bool
 	ExecutableExists(path string) bool
 	LinkExists(path string) bool
+	GetMetaData(path string) (Meta, error)
 }
 
 type OnDiskManagedFiles struct { }
@@ -55,4 +58,19 @@ func (self *OnDiskManagedFiles) LinkExists(path string) bool {
 		return false
 	}
 	return true
+}
+
+func (self *OnDiskManagedFiles) GetMetaData(path string) (Meta, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return Meta{}, fmt.Errorf("Could not open metadata file at %s: %w", path, err)
+	}
+
+	metadata := Meta{}
+	err = run.GetStrictDecoder(file).Decode(&metadata)
+	if err != nil {
+		return Meta{}, fmt.Errorf("Error parsing metadata file at %s: %w", path, err)
+	}
+
+	return metadata, nil
 }

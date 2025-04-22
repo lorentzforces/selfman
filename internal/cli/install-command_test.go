@@ -34,7 +34,7 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 	appToInstall := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "git-repo-app",
-		BaseType: "git",
+		Flavor: "git",
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 		BuildAction: "none",
 	}
@@ -92,7 +92,7 @@ func TestInstallGitDoesNotCloneIfSourceAlreadyPresent(t *testing.T) {
 	appToInstall := data.AppConfig{
 		SystemConfig: systemConfig,
 		Name: "git-repo-app",
-		BaseType: "git",
+		Flavor: "git",
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 		BuildAction: "none",
 	}
