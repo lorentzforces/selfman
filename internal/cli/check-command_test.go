@@ -35,6 +35,7 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 		SystemConfig: systemConfig,
 		Name: "high-status-app",
 		Flavor: "git",
+		Version: "1.0.0",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
@@ -50,6 +51,11 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 		"LinkExists",
 		path.Join(*systemConfig.BinaryDir, appWithStatus.Name),
 	).Return(false)
+
+	mockStorage.On(
+		"GetMetaData",
+		path.Join(systemConfig.MetaPath(), appWithStatus.Name + ".meta.yaml"),
+	).Return(data.Meta{})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,

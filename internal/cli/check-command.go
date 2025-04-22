@@ -41,14 +41,23 @@ type checkAppResult struct {
 }
 
 func (self checkAppResult) String() string {
+	versionString := self.status.CurrentVersion
+	if self.status.CurrentVersion != self.status.DesiredVersion {
+		versionString = fmt.Sprintf(
+			"'%s' ('%s' configured)",
+			self.status.CurrentVersion, self.status.DesiredVersion,
+		)
+	}
+
 	return fmt.Sprintf(
-		"📋 %s\n\n" +
+		"📋 %s\n" +
+		"  version: %s\n\n" +
 		"Overall status: %s\n" +
 		"  Source present: %t\n" +
 		"  Target present: %t\n" +
 		"  Bin link present: %t\n",
-		self.appName, self.status.Label(), self.status.SourcePresent,
-		self.status.TargetPresent, self.status.LinkPresent,
+		self.appName, versionString, self.status.Label(),
+		self.status.SourcePresent, self.status.TargetPresent, self.status.LinkPresent,
 	)
 }
 

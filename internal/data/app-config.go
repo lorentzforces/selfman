@@ -22,7 +22,7 @@ const (
 	installActionGitClone = "git-clone"
 	installActionWebDownload = "web-download"
 
-	// TODO: select version
+	// TODO: select version (does this need to be an operation?)
 
 	buildActionScript = "script"
 
@@ -30,12 +30,16 @@ const (
 )
 
 // TODO: do we want to continue using the same struct for serialization and runtime usage?
-// TODO: version-label (and then how do we track version history?)
 // TODO: make some form of config file with explainers (potentially accessible via command)
+// TODO(jdtls): version-label (and then how do we track version history?)
+// TODO(jdtls): support some kind of "library" or "dir" target as well as the binary target, which
+//              puts the full directory tree somewhere well-known
 type AppConfig struct {
 	SystemConfig *SystemConfig `yaml:"-"`
 	Name string
 	Flavor string
+	Version string
+	BaseType string `yaml:"base-type"` // let config files keep this around a little bit (unused)
 	BuildAction string `yaml:"build-action"`
 	BuildTarget string `yaml:"build-target"`
 	RemoteRepo *string `yaml:"remote-repo,omitempty"`
@@ -57,6 +61,10 @@ func (self *AppConfig) BuildTargetPath() string {
 
 func (self *AppConfig) BinaryPath() string {
 	return path.Join(*self.SystemConfig.BinaryDir, self.Name)
+}
+
+func (self *AppConfig) MetaPath() string {
+	return path.Join(self.SystemConfig.MetaPath(), self.Name + ".meta.yaml")
 }
 
 func (self *AppConfig) GetInstallOp() ops.Operation {
@@ -143,11 +151,13 @@ func (self *AppConfig) validate() error {
 	}
 
 	if self.Flavor == flavorGit && self.RemoteRepo == nil {
-		return fmt.Errorf("(app %s) Remote repo must be specified for apps of flavor %s", self.Name, flavorGit)
+		return fmt.Errorf(
+			"(app %s) Remote repo must be specified for apps of flavor %s", self.Name, flavorGit)
 	}
 
 	if self.Flavor == flavorWebFetch && self.WebUrl == nil {
-		return fmt.Errorf("(app %s) Web URL must be specified for apps of flavor %s", self.Name, flavorWebFetch)
+		return fmt.Errorf(
+			"(app %s) Web URL must be specified for apps of flavor %s", self.Name, flavorWebFetch)
 	}
 
 	return nil

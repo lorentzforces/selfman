@@ -50,6 +50,10 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 		"LinkExists",
 		path.Join(*systemConfig.BinaryDir, appToInstall.Name),
 	).Return(false)
+	mockStorage.On(
+		"GetMetaData",
+		path.Join(systemConfig.MetaPath(), appToInstall.Name + ".meta.yaml"),
+	).Return(data.Meta{})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,

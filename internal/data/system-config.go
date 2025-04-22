@@ -138,6 +138,10 @@ func (self *SystemConfig) ArtifactsPath() string {
 	return path.Join(*self.DataDir, "artifacts")
 }
 
+func (self *SystemConfig) MetaPath() string {
+	return path.Join(*self.DataDir, "meta")
+}
+
 func defaultConfig() SystemConfig {
 	return SystemConfig{
 		AppConfigDir: run.StrPtr(path.Join(resolveXdgConfigDir(), "selfman", "apps")),

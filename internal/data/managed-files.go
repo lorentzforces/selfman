@@ -15,7 +15,8 @@ type ManagedFiles interface {
 	DirExistsNotEmpty(path string) bool
 	ExecutableExists(path string) bool
 	LinkExists(path string) bool
-	GetMetaData(path string) (Meta, error)
+	GetMetaData(path string) Meta
+	WriteMetaData(path string, meta Meta) error
 }
 
 type OnDiskManagedFiles struct { }
@@ -60,17 +61,17 @@ func (self *OnDiskManagedFiles) LinkExists(path string) bool {
 	return true
 }
 
-func (self *OnDiskManagedFiles) GetMetaData(path string) (Meta, error) {
+func (self *OnDiskManagedFiles) GetMetaData(path string) Meta {
 	file, err := os.Open(path)
-	if err != nil {
-		return Meta{}, fmt.Errorf("Could not open metadata file at %s: %w", path, err)
-	}
+	if err != nil { return Meta{} }
 
 	metadata := Meta{}
 	err = run.GetStrictDecoder(file).Decode(&metadata)
-	if err != nil {
-		return Meta{}, fmt.Errorf("Error parsing metadata file at %s: %w", path, err)
-	}
+	if err != nil { return Meta{} }
 
-	return metadata, nil
+	return metadata
+}
+
+func (self *OnDiskManagedFiles) WriteMetaData(path string, meta Meta) error {
+	return fmt.Errorf("Not yet implemented: WriteMetaData")
 }

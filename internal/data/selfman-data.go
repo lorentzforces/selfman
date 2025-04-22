@@ -59,6 +59,8 @@ type AppStatus struct {
 	SourcePresent bool
 	TargetPresent bool
 	LinkPresent bool
+	DesiredVersion string
+	CurrentVersion string
 }
 
 func (self AppStatus) FullyPresent() bool {
@@ -105,6 +107,11 @@ func (self Selfman) AppStatus(appName string) (AppConfig, AppStatus) {
 
 	statusReport.TargetPresent = self.Storage.ExecutableExists(foundApp.ArtifactPath())
 	statusReport.LinkPresent = self.Storage.LinkExists(foundApp.BinaryPath())
+
+	metadata := self.Storage.GetMetaData(foundApp.MetaPath())
+	statusReport.CurrentVersion = metadata.CurrentVersion
+
+	statusReport.CurrentVersion = foundApp.Version
 
 	return foundApp, statusReport
 }

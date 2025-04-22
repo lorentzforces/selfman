@@ -29,9 +29,14 @@ func (self *MockManagedFiles) LinkExists(path string) bool {
 	return args.Bool(0)
 }
 
-func (self *MockManagedFiles) GetMetaData(path string) (data.Meta, error) {
+func (self *MockManagedFiles) GetMetaData(path string) data.Meta {
 	args := self.Called(path)
-	return args.Get(0).(data.Meta), args.Error(1)
+	return args.Get(0).(data.Meta)
+}
+
+func (self *MockManagedFiles) WriteMetaData(path string, meta data.Meta) error {
+	args := self.Called(path, meta)
+	return args.Error(0)
 }
 
 func (self *MockManagedFiles) MockAllFilesPresent() {
@@ -40,3 +45,5 @@ func (self *MockManagedFiles) MockAllFilesPresent() {
 	self.On("ExecutableExists", mock.Anything).Return(true)
 	self.On("LinkExists", mock.Anything).Return(true)
 }
+
+// TODO(jdtls): overhaul mocking a bit to make it less onerous to mock all the status stuff
