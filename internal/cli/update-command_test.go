@@ -39,12 +39,18 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 		BuildCmd: run.StrPtr("make deez"),
 	}
 
-	mockStorage := mocks.MockManagedFiles{}
-	mockStorage.MockAllFilesPresent()
+	storageData := mocks.StartMockingManagedFiles(systemConfig)
+	mockStorage := storageData.SetMocks(
+		storageData.GitAppPresent(appToUpdate.Name, true),
+		storageData.ExecutableExists(appToUpdate.Name, true),
+		storageData.LinkExists(appToUpdate.Name, true),
+		storageData.MetaData(appToUpdate.Name, &data.Meta{}),
+	)
+
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{appToUpdate},
-		&mockStorage,
+		mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
@@ -96,27 +102,20 @@ func TestUpdateCommandErrorsWithNonPresentApp(t *testing.T) {
 		BuildCmd: run.StrPtr("make deez"),
 	}
 
-	mockStorage := mocks.MockManagedFiles{}
+	storageData := mocks.StartMockingManagedFiles(systemConfig)
+	mockStorage := storageData.SetMocks(
+		storageData.GitAppPresent(notPresentApp.Name, false),
+		storageData.ExecutableExists(notPresentApp.Name, false),
+		storageData.LinkExists(notPresentApp.Name, false),
+		storageData.MetaData(notPresentApp.Name, &data.Meta{}),
+	)
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ notPresentApp },
-		&mockStorage,
+		mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
-
-	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(selfmanData.SystemConfig.SourcesPath(), notPresentApp.Name),
-	).Return(false)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(selfmanData.SystemConfig.ArtifactsPath(), notPresentApp.Name),
-	).Return(false)
-	mockStorage.On(
-		"LinkExists",
-		path.Join(*selfmanData.SystemConfig.BinaryDir, notPresentApp.Name),
-	).Return(false)
 
 	_, err = updateApp(notPresentApp.Name, selfmanData)
 	assert.Error(

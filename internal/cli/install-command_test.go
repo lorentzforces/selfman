@@ -29,7 +29,6 @@ func TestInstallCommandValidatesNameExists(t *testing.T) {
 
 func TestInstallCommandProducesSaneOperations(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
-	mockStorage := mocks.MockManagedFiles{}
 
 	appToInstall := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -38,27 +37,19 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 		BuildAction: "none",
 	}
-	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(systemConfig.SourcesPath(), appToInstall.Name),
-	).Return(false)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(systemConfig.ArtifactsPath(), appToInstall.Name),
-	).Return(false)
-	mockStorage.On(
-		"LinkExists",
-		path.Join(*systemConfig.BinaryDir, appToInstall.Name),
-	).Return(false)
-	mockStorage.On(
-		"GetMetaData",
-		path.Join(systemConfig.MetaPath(), appToInstall.Name + ".meta.yaml"),
-	).Return(data.Meta{})
+
+	storageData := mocks.StartMockingManagedFiles(systemConfig)
+	mockStorage := storageData.SetMocks(
+		storageData.GitAppPresent(appToInstall.Name, false),
+		storageData.ExecutableExists(appToInstall.Name, false),
+		storageData.LinkExists(appToInstall.Name, false),
+		storageData.MetaData(appToInstall.Name, &data.Meta{}),
+	)
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{appToInstall},
-		&mockStorage,
+		mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
@@ -91,7 +82,6 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 
 func TestInstallGitDoesNotCloneIfSourceAlreadyPresent(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
-	mockStorage := mocks.MockManagedFiles{}
 
 	appToInstall := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -100,23 +90,19 @@ func TestInstallGitDoesNotCloneIfSourceAlreadyPresent(t *testing.T) {
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 		BuildAction: "none",
 	}
-	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(systemConfig.SourcesPath(), appToInstall.Name),
-	).Return(true)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(systemConfig.ArtifactsPath(), appToInstall.Name),
-	).Return(false)
-	mockStorage.On(
-		"LinkExists",
-		path.Join(*systemConfig.BinaryDir, appToInstall.Name),
-	).Return(false)
+
+	storageData := mocks.StartMockingManagedFiles(systemConfig)
+	mockStorage := storageData.SetMocks(
+		storageData.GitAppPresent(appToInstall.Name, true),
+		storageData.ExecutableExists(appToInstall.Name, false),
+		storageData.LinkExists(appToInstall.Name, false),
+		storageData.MetaData(appToInstall.Name, &data.Meta{}),
+	)
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ appToInstall },
-		&mockStorage,
+		mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)

@@ -1,6 +1,8 @@
 package mocks
 
 import (
+	"path"
+
 	"github.com/lorentzforces/selfman/internal/data"
 	"github.com/stretchr/testify/mock"
 )
@@ -46,4 +48,60 @@ func (self *MockManagedFiles) MockAllFilesPresent() {
 	self.On("LinkExists", mock.Anything).Return(true)
 }
 
-// TODO(jdtls): overhaul mocking a bit to make it less onerous to mock all the status stuff
+func StartMockingManagedFiles(sysConf *data.SystemConfig) *managedFilesMockOpts {
+	return &managedFilesMockOpts{
+		sysConf,
+	}
+}
+
+type managedFilesMockOpts struct {
+	sysConf *data.SystemConfig
+}
+type managedFilesMockOptFunc func(*MockManagedFiles)
+
+func (self *managedFilesMockOpts) SetMocks(opts ...managedFilesMockOptFunc) *MockManagedFiles {
+	mock := &MockManagedFiles{}
+	for _, opt := range opts {
+		opt(mock)
+	}
+	return mock
+}
+
+func (self *managedFilesMockOpts) GitAppPresent(
+	appName string,
+	present bool,
+) managedFilesMockOptFunc {
+	return func(mock *MockManagedFiles) {
+		mock.On("IsGitAppPresent", path.Join(self.sysConf.SourcesPath(), appName)).Return(present)
+	}
+}
+
+func (self *managedFilesMockOpts) ExecutableExists(
+	appName string,
+	exists bool,
+) managedFilesMockOptFunc {
+	return func(mock *MockManagedFiles) {
+		mock.On("ExecutableExists", path.Join(self.sysConf.ArtifactsPath(), appName)).Return(exists)
+	}
+}
+
+func (self *managedFilesMockOpts) LinkExists(
+	appName string,
+	exists bool,
+) managedFilesMockOptFunc {
+	return func(mock *MockManagedFiles) {
+		mock.On("LinkExists", path.Join(*self.sysConf.BinaryDir, appName)).Return(exists)
+	}
+}
+
+func (self *managedFilesMockOpts) MetaData(
+	appName string,
+	metadata *data.Meta,
+) managedFilesMockOptFunc {
+	return func(mock *MockManagedFiles) {
+		mock.On(
+			"GetMetaData",
+			path.Join(self.sysConf.MetaPath(), data.MetaFileNameForApp(appName)),
+		).Return(*metadata)
+	}
+}

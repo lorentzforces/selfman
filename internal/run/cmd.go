@@ -33,6 +33,16 @@ func (self *CmdError) ErrorOutput() string {
 	return self.stdErr
 }
 
+// implement interface so consumers can check for cmd errors natively via errors.Is(..)
+func (self CmdError) Is(target error) bool {
+	return target == self.baseError
+}
+
+// implement interface so consumers can check for cmd errors natively via errors.As(..)
+func (self CmdError) Unwrap() error {
+	return self.baseError
+}
+
 type cmdRun struct {
 	name string
 	args []string

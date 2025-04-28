@@ -116,6 +116,23 @@ func (self Selfman) AppStatus(appName string) (AppConfig, AppStatus) {
 	return foundApp, statusReport
 }
 
+// TODO(jdtls): is this necessary?
+func (self Selfman) VersionIsPresent(appName string, version string) bool {
+	foundApp, present := self.AppConfigs[appName]
+	if !present { return false }
+
+	// TODO: support other flavors
+	if foundApp.Flavor == flavorGit {
+		return self.Storage.IsGitRevPresent(foundApp.SourcePath(), version)
+	}
+
+	run.FailOut(fmt.Sprintf(
+		"Tried to check version %s present for app %s, but was not able to determine",
+		version, appName,
+	))
+	return false // unreachable
+}
+
 func (self Selfman) VerifyAllDirectoriesExist() {
 	run.VerifyDirExists(*self.SystemConfig.DataDir)
 	run.VerifyDirExists(*self.SystemConfig.AppConfigDir)

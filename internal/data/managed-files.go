@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/lorentzforces/selfman/internal/git"
 	"github.com/lorentzforces/selfman/internal/run"
 	"golang.org/x/sys/unix"
 )
@@ -17,6 +18,7 @@ type ManagedFiles interface {
 	LinkExists(path string) bool
 	GetMetaData(path string) Meta
 	WriteMetaData(path string, meta Meta) error
+	IsGitRevPresent(repoPath string, rev string) bool
 }
 
 type OnDiskManagedFiles struct { }
@@ -70,6 +72,17 @@ func (self *OnDiskManagedFiles) GetMetaData(path string) Meta {
 	if err != nil { return Meta{} }
 
 	return metadata
+}
+
+func (self *OnDiskManagedFiles) IsGitRevPresent(repoPath string, rev string) bool {
+	oldWorkingDir, err := os.Getwd()
+	if err != nil { return false }
+	err = os.Chdir(repoPath)
+	if err != nil { return false }
+
+	present := git.RevExists(rev)
+	err = os.Chdir(oldWorkingDir)
+	return present
 }
 
 func (self *OnDiskManagedFiles) WriteMetaData(path string, meta Meta) error {

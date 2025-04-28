@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"path"
 	"testing"
 
 	"github.com/lorentzforces/selfman/internal/data"
@@ -21,19 +20,6 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
-	mockStorage := mocks.MockManagedFiles{}
-	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(systemConfig.SourcesPath(), presentApp.Name),
-	).Return(true)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(systemConfig.ArtifactsPath(), presentApp.Name),
-	).Return(true)
-	mockStorage.On(
-		"LinkExists",
-		path.Join(*systemConfig.BinaryDir, presentApp.Name),
-	).Return(true)
 
 	notPresentApp := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -42,18 +28,6 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
-	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(systemConfig.SourcesPath(), notPresentApp.Name),
-	).Return(false)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(systemConfig.ArtifactsPath(), notPresentApp.Name),
-	).Return(false)
-	mockStorage.On(
-		"LinkExists",
-		path.Join(*systemConfig.BinaryDir, notPresentApp.Name),
-	).Return(false)
 
 	inconsistentApp := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -62,23 +36,29 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
-	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(systemConfig.SourcesPath(), inconsistentApp.Name),
-	).Return(true)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(systemConfig.ArtifactsPath(), inconsistentApp.Name),
-	).Return(true)
-	mockStorage.On(
-		"LinkExists",
-		path.Join(*systemConfig.BinaryDir, inconsistentApp.Name),
-	).Return(false)
+
+	storageData := mocks.StartMockingManagedFiles(systemConfig)
+	mockStorage := storageData.SetMocks(
+		storageData.GitAppPresent(presentApp.Name, true),
+		storageData.ExecutableExists(presentApp.Name, true),
+		storageData.LinkExists(presentApp.Name, true),
+		storageData.MetaData(presentApp.Name, &data.Meta{}),
+
+		storageData.GitAppPresent(notPresentApp.Name, false),
+		storageData.ExecutableExists(notPresentApp.Name, false),
+		storageData.LinkExists(notPresentApp.Name, false),
+		storageData.MetaData(notPresentApp.Name, &data.Meta{}),
+
+		storageData.GitAppPresent(inconsistentApp.Name, true),
+		storageData.ExecutableExists(inconsistentApp.Name, true),
+		storageData.LinkExists(inconsistentApp.Name, false),
+		storageData.MetaData(inconsistentApp.Name, &data.Meta{}),
+	)
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ presentApp, notPresentApp, inconsistentApp },
-		&mockStorage,
+		mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
@@ -137,6 +117,7 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	mockStorage.On("IsGitAppPresent", mock.Anything).Return(false)
 	mockStorage.On("ExecutableExists", mock.Anything).Return(false)
 	mockStorage.On("LinkExists", mock.Anything).Return(false)
+	mockStorage.On("GetMetaData", mock.Anything).Return(data.Meta{})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,

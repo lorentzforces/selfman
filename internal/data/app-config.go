@@ -64,7 +64,7 @@ func (self *AppConfig) BinaryPath() string {
 }
 
 func (self *AppConfig) MetaPath() string {
-	return path.Join(self.SystemConfig.MetaPath(), self.Name + ".meta.yaml")
+	return path.Join(self.SystemConfig.MetaPath(), MetaFileNameForApp(self.Name))
 }
 
 func (self *AppConfig) GetInstallOp() ops.Operation {
@@ -111,6 +111,19 @@ func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 		}
 	}
 	// TODO: flavorWebFetch
+	}
+
+	run.FailOut(fmt.Sprintf("Unhandled app flavor -> operation mapping: %s", self.Flavor))
+	panic("Unreachable in theory")
+}
+
+func (self *AppConfig) GetSelectVersionOp() ops.Operation {
+	switch self.Flavor {
+	case flavorGit: {
+		return ops.GitCheckout{
+			RepoPath: self.SourcePath(),
+		}
+	}
 	}
 
 	run.FailOut(fmt.Sprintf("Unhandled app flavor -> operation mapping: %s", self.Flavor))

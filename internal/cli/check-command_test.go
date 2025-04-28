@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"path"
 	"testing"
 
 	"github.com/lorentzforces/selfman/internal/data"
@@ -29,7 +28,6 @@ func TestCheckCommandValidatesNameExists(t *testing.T) {
 
 func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
-	mockStorage := mocks.MockManagedFiles{}
 
 	appWithStatus := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -39,28 +37,19 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
 	}
-	mockStorage.On(
-		"IsGitAppPresent",
-		path.Join(systemConfig.SourcesPath(), appWithStatus.Name),
-	).Return(false)
-	mockStorage.On(
-		"ExecutableExists",
-		path.Join(systemConfig.ArtifactsPath(), appWithStatus.Name),
-	).Return(true)
-	mockStorage.On(
-		"LinkExists",
-		path.Join(*systemConfig.BinaryDir, appWithStatus.Name),
-	).Return(false)
 
-	mockStorage.On(
-		"GetMetaData",
-		path.Join(systemConfig.MetaPath(), appWithStatus.Name + ".meta.yaml"),
-	).Return(data.Meta{})
+	storageData := mocks.StartMockingManagedFiles(systemConfig)
+	mockStorage := storageData.SetMocks(
+		storageData.GitAppPresent(appWithStatus.Name, false),
+		storageData.ExecutableExists(appWithStatus.Name, true),
+		storageData.LinkExists(appWithStatus.Name, false),
+		storageData.MetaData(appWithStatus.Name, &data.Meta{}),
+	)
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ appWithStatus },
-		&mockStorage,
+		mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
