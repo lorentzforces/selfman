@@ -37,20 +37,21 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "script",
 		BuildCmd: run.StrPtr("make deez"),
+		Version: "main",
 	}
 
-	storageData := mocks.StartMockingManagedFiles(systemConfig)
-	mockStorage := storageData.SetMocks(
-		storageData.GitAppPresent(appToUpdate.Name, true),
-		storageData.ExecutableExists(appToUpdate.Name, true),
-		storageData.LinkExists(appToUpdate.Name, true),
-		storageData.MetaData(appToUpdate.Name, &data.Meta{}),
-	)
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", appToUpdate.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: true,
+		TargetPresent: true,
+		LinkPresent: true,
+	})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{appToUpdate},
-		mockStorage,
+		&mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
@@ -60,31 +61,19 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 	run.BailIfFailed(t)
 	expectedActions := []ops.Operation{
 		ops.GitPull{
-			RepoPath: path.Join(
-				selfmanData.SystemConfig.SourcesPath(),
-				appToUpdate.Name,
-			),
+			RepoPath: appToUpdate.SourcePath(),
 		},
 		ops.BuildWithScript{
-			SourcePath: path.Join(
-				selfmanData.SystemConfig.SourcesPath(),
-				appToUpdate.Name,
-			),
+			SourcePath: appToUpdate.SourcePath(),
 			ScriptShell: "/bin/sh",
 			ScriptCmd: "make deez",
 		},
 		ops.MoveTarget{
-			SourcePath: path.Join(
-				selfmanData.SystemConfig.SourcesPath(),
-				appToUpdate.Name,
-				appToUpdate.Name,
-			),
-			DestinationPath: path.Join(
-				selfmanData.SystemConfig.ArtifactsPath(), appToUpdate.Name,
-			),
+			SourcePath: path.Join(appToUpdate.SourcePath(), appToUpdate.Name),
+			DestinationPath: appToUpdate.ArtifactPath(),
 		},
 		ops.LinkArtifact{
-			SourcePath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToUpdate.Name),
+			SourcePath: appToUpdate.ArtifactPath(),
 			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToUpdate.Name),
 		},
 	}
@@ -100,19 +89,19 @@ func TestUpdateCommandErrorsWithNonPresentApp(t *testing.T) {
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "script",
 		BuildCmd: run.StrPtr("make deez"),
+		Version: "main",
 	}
 
-	storageData := mocks.StartMockingManagedFiles(systemConfig)
-	mockStorage := storageData.SetMocks(
-		storageData.GitAppPresent(notPresentApp.Name, false),
-		storageData.ExecutableExists(notPresentApp.Name, false),
-		storageData.LinkExists(notPresentApp.Name, false),
-		storageData.MetaData(notPresentApp.Name, &data.Meta{}),
-	)
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", notPresentApp.Name).Return(data.AppStatus{
+		IsConfigured: true,
+	})
+
+
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ notPresentApp },
-		mockStorage,
+		&mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)

@@ -36,20 +36,18 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 		BuildAction: "none",
+		Version: "main",
 	}
 
-	storageData := mocks.StartMockingManagedFiles(systemConfig)
-	mockStorage := storageData.SetMocks(
-		storageData.GitAppPresent(appToInstall.Name, false),
-		storageData.ExecutableExists(appToInstall.Name, false),
-		storageData.LinkExists(appToInstall.Name, false),
-		storageData.MetaData(appToInstall.Name, &data.Meta{}),
-	)
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", appToInstall.Name).Return(data.AppStatus{
+		IsConfigured: true,
+	})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{appToInstall},
-		mockStorage,
+		&mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
@@ -57,23 +55,20 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 	actions, err := installApp(appToInstall.Name, selfmanData)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
+
 	expectedActions := []ops.Operation{
 		ops.GitClone{
 			RepoUrl: *selfmanData.AppConfigs[appToInstall.Name].RemoteRepo,
-			DestinationPath: path.Join(selfmanData.SystemConfig.SourcesPath(), appToInstall.Name),
+			DestinationPath: path.Join(appToInstall.SourcePath()),
 		},
 		// TODO: change this to have an actual build step in it
 		ops.NoBuildOp,
 		ops.MoveTarget{
-			SourcePath: path.Join(
-				selfmanData.SystemConfig.SourcesPath(),
-				appToInstall.Name,
-				appToInstall.Name,
-			),
-			DestinationPath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
+			SourcePath: path.Join(appToInstall.SourcePath(), appToInstall.Name),
+			DestinationPath: appToInstall.ArtifactPath(),
 		},
 		ops.LinkArtifact{
-			SourcePath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
+			SourcePath: appToInstall.ArtifactPath(),
 			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToInstall.Name),
 		},
 	}
@@ -89,20 +84,19 @@ func TestInstallGitDoesNotCloneIfSourceAlreadyPresent(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
 		BuildAction: "none",
+		Version: "main",
 	}
 
-	storageData := mocks.StartMockingManagedFiles(systemConfig)
-	mockStorage := storageData.SetMocks(
-		storageData.GitAppPresent(appToInstall.Name, true),
-		storageData.ExecutableExists(appToInstall.Name, false),
-		storageData.LinkExists(appToInstall.Name, false),
-		storageData.MetaData(appToInstall.Name, &data.Meta{}),
-	)
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", appToInstall.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: true,
+	})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ appToInstall },
-		mockStorage,
+		&mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
@@ -115,15 +109,11 @@ func TestInstallGitDoesNotCloneIfSourceAlreadyPresent(t *testing.T) {
 		ops.SkipCloneOp,
 		ops.NoBuildOp,
 		ops.MoveTarget{
-			SourcePath: path.Join(
-				selfmanData.SystemConfig.SourcesPath(),
-				appToInstall.Name,
-				appToInstall.Name,
-			),
-			DestinationPath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
+			SourcePath: path.Join(appToInstall.SourcePath(), appToInstall.Name),
+			DestinationPath: appToInstall.ArtifactPath(),
 		},
 		ops.LinkArtifact{
-			SourcePath: path.Join(selfmanData.SystemConfig.ArtifactsPath(), appToInstall.Name),
+			SourcePath: appToInstall.ArtifactPath(),
 			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToInstall.Name),
 		},
 	}

@@ -38,18 +38,19 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 		BuildAction: "none",
 	}
 
-	storageData := mocks.StartMockingManagedFiles(systemConfig)
-	mockStorage := storageData.SetMocks(
-		storageData.GitAppPresent(appWithStatus.Name, false),
-		storageData.ExecutableExists(appWithStatus.Name, true),
-		storageData.LinkExists(appWithStatus.Name, false),
-		storageData.MetaData(appWithStatus.Name, &data.Meta{}),
-	)
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", appWithStatus.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: false,
+		LinkPresent: false,
+		TargetPresent: true,
+		DesiredVersion: appWithStatus.Version,
+	})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ appWithStatus },
-		mockStorage,
+		&mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)

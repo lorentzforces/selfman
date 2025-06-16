@@ -7,7 +7,6 @@ import (
 	"github.com/lorentzforces/selfman/internal/data/mocks"
 	"github.com/lorentzforces/selfman/internal/run"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestAppStatusesAreReflected(t *testing.T) {
@@ -19,6 +18,7 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
+		Version: "main",
 	}
 
 	notPresentApp := data.AppConfig{
@@ -27,6 +27,7 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
+		Version: "main",
 	}
 
 	inconsistentApp := data.AppConfig{
@@ -35,30 +36,30 @@ func TestAppStatusesAreReflected(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("doesn't matter"),
 		BuildAction: "none",
+		Version: "main",
 	}
 
-	storageData := mocks.StartMockingManagedFiles(systemConfig)
-	mockStorage := storageData.SetMocks(
-		storageData.GitAppPresent(presentApp.Name, true),
-		storageData.ExecutableExists(presentApp.Name, true),
-		storageData.LinkExists(presentApp.Name, true),
-		storageData.MetaData(presentApp.Name, &data.Meta{}),
-
-		storageData.GitAppPresent(notPresentApp.Name, false),
-		storageData.ExecutableExists(notPresentApp.Name, false),
-		storageData.LinkExists(notPresentApp.Name, false),
-		storageData.MetaData(notPresentApp.Name, &data.Meta{}),
-
-		storageData.GitAppPresent(inconsistentApp.Name, true),
-		storageData.ExecutableExists(inconsistentApp.Name, true),
-		storageData.LinkExists(inconsistentApp.Name, false),
-		storageData.MetaData(inconsistentApp.Name, &data.Meta{}),
-	)
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", presentApp.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: true,
+		TargetPresent: true,
+		LinkPresent: true,
+	})
+	mockStorage.On("AppStatus", notPresentApp.Name).Return(data.AppStatus{
+		IsConfigured: true,
+	})
+	mockStorage.On("AppStatus", inconsistentApp.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: true,
+		TargetPresent: true,
+		LinkPresent: false,
+	})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{ presentApp, notPresentApp, inconsistentApp },
-		mockStorage,
+		&mockStorage,
 	)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
@@ -83,6 +84,7 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
+		Version: "main",
 	}
 	bravoApp := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -90,6 +92,7 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
+		Version: "main",
 	}
 	charlieApp := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -97,6 +100,7 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
+		Version: "main",
 	}
 	deltaApp := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -104,6 +108,7 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
+		Version: "main",
 	}
 	foxtrotApp := data.AppConfig{
 		SystemConfig: systemConfig,
@@ -111,19 +116,23 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("test"),
 		BuildAction: "none",
+		Version: "main",
 	}
 
 	mockStorage := mocks.MockManagedFiles{}
-	mockStorage.On("IsGitAppPresent", mock.Anything).Return(false)
-	mockStorage.On("ExecutableExists", mock.Anything).Return(false)
-	mockStorage.On("LinkExists", mock.Anything).Return(false)
-	mockStorage.On("GetMetaData", mock.Anything).Return(data.Meta{})
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,
 		[]data.AppConfig{deltaApp, bravoApp, charlieApp, alphaApp, foxtrotApp},
 		&mockStorage,
 	)
+
+	for appName, _ := range selfmanData.AppConfigs {
+		mockStorage.On("AppStatus", appName).Return(data.AppStatus{
+			IsConfigured: true,
+		})
+	}
+
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 

@@ -21,7 +21,7 @@ func Produce() (Selfman, error) {
 	appConfigs, err := loadAppConfigs(&systemConfig)
 	if err != nil { return Selfman{}, err }
 
-	selfman, err := SelfmanFromValues(&systemConfig, appConfigs, &OnDiskManagedFiles{})
+	selfman, err := SelfmanFromValues(&systemConfig, appConfigs, nil)
 	if err != nil { return Selfman{}, err }
 
 	selfman.VerifyAllDirectoriesExist()
@@ -47,6 +47,15 @@ func SelfmanFromValues(
 		appConfigMap[app.Name] = app
 	}
 
+	// if we were provided a storage instance, use it, otherwise create one of the default type
+	if storage == nil {
+		return Selfman{
+			SystemConfig: system,
+			AppConfigs: appConfigMap,
+			Storage: &AppManagedFiles{ AppConfigs: appConfigMap },
+		}, nil
+	}
+
 	return Selfman{
 		SystemConfig: system,
 		AppConfigs: appConfigMap,
@@ -54,13 +63,14 @@ func SelfmanFromValues(
 	}, nil
 }
 
+// For non-git apps, SourcePresent and VersionPresent will be the same
 type AppStatus struct {
 	IsConfigured bool
 	SourcePresent bool
 	TargetPresent bool
 	LinkPresent bool
 	DesiredVersion string
-	CurrentVersion string
+	VersionPresent bool
 }
 
 func (self AppStatus) FullyPresent() bool {
@@ -97,40 +107,8 @@ func (self Selfman) AppStatus(appName string) (AppConfig, AppStatus) {
 	foundApp, present := self.AppConfigs[appName]
 	if !present { return AppConfig{}, AppStatus{} }
 
-	statusReport := AppStatus{}
-	statusReport.IsConfigured = true
-	if foundApp.Flavor == flavorGit {
-		statusReport.SourcePresent = self.Storage.IsGitAppPresent(foundApp.SourcePath())
-	} else {
-		statusReport.SourcePresent = self.Storage.DirExistsNotEmpty(foundApp.SourcePath())
-	}
-
-	statusReport.TargetPresent = self.Storage.ExecutableExists(foundApp.ArtifactPath())
-	statusReport.LinkPresent = self.Storage.LinkExists(foundApp.BinaryPath())
-
-	metadata := self.Storage.GetMetaData(foundApp.MetaPath())
-	statusReport.CurrentVersion = metadata.CurrentVersion
-
-	statusReport.CurrentVersion = foundApp.Version
-
+	statusReport := self.Storage.AppStatus(appName)
 	return foundApp, statusReport
-}
-
-// TODO(jdtls): is this necessary?
-func (self Selfman) VersionIsPresent(appName string, version string) bool {
-	foundApp, present := self.AppConfigs[appName]
-	if !present { return false }
-
-	// TODO: support other flavors
-	if foundApp.Flavor == flavorGit {
-		return self.Storage.IsGitRevPresent(foundApp.SourcePath(), version)
-	}
-
-	run.FailOut(fmt.Sprintf(
-		"Tried to check version %s present for app %s, but was not able to determine",
-		version, appName,
-	))
-	return false // unreachable
 }
 
 func (self Selfman) VerifyAllDirectoriesExist() {

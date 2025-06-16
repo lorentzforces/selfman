@@ -35,7 +35,7 @@ const (
 // TODO(jdtls): support some kind of "library" or "dir" target as well as the binary target, which
 //              puts the full directory tree somewhere well-known
 type AppConfig struct {
-	SystemConfig *SystemConfig `yaml:"-"`
+	SystemConfig *SystemConfig `yaml:"-"` // ignored in yaml
 	Name string
 	Flavor string
 	Version string
@@ -48,11 +48,14 @@ type AppConfig struct {
 }
 
 func (self *AppConfig) SourcePath() string {
-	return path.Join(self.SystemConfig.SourcesPath(), self.Name)
+	if self.Flavor == flavorGit {
+		return path.Join(self.SystemConfig.SourcesPath(), self.Name, "git")
+	}
+	return path.Join(self.SystemConfig.SourcesPath(), self.Name, self.Version)
 }
 
 func (self *AppConfig) ArtifactPath() string {
-	return path.Join(self.SystemConfig.ArtifactsPath(), self.Name)
+	return path.Join(self.SystemConfig.ArtifactsPath(), self.Name + "---" + self.Version)
 }
 
 func (self *AppConfig) BuildTargetPath() string {
@@ -61,10 +64,6 @@ func (self *AppConfig) BuildTargetPath() string {
 
 func (self *AppConfig) BinaryPath() string {
 	return path.Join(*self.SystemConfig.BinaryDir, self.Name)
-}
-
-func (self *AppConfig) MetaPath() string {
-	return path.Join(self.SystemConfig.MetaPath(), MetaFileNameForApp(self.Name))
 }
 
 func (self *AppConfig) GetInstallOp() ops.Operation {
@@ -111,19 +110,6 @@ func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 		}
 	}
 	// TODO: flavorWebFetch
-	}
-
-	run.FailOut(fmt.Sprintf("Unhandled app flavor -> operation mapping: %s", self.Flavor))
-	panic("Unreachable in theory")
-}
-
-func (self *AppConfig) GetSelectVersionOp() ops.Operation {
-	switch self.Flavor {
-	case flavorGit: {
-		return ops.GitCheckout{
-			RepoPath: self.SourcePath(),
-		}
-	}
 	}
 
 	run.FailOut(fmt.Sprintf("Unhandled app flavor -> operation mapping: %s", self.Flavor))

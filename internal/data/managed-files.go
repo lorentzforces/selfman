@@ -1,38 +1,55 @@
 package data
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path"
 
 	"github.com/lorentzforces/selfman/internal/git"
-	"github.com/lorentzforces/selfman/internal/run"
 	"golang.org/x/sys/unix"
 )
 
 type ManagedFiles interface {
-	IsGitAppPresent(repoPath string) bool
-	DirExistsNotEmpty(path string) bool
-	ExecutableExists(path string) bool
-	LinkExists(path string) bool
-	GetMetaData(path string) Meta
-	WriteMetaData(path string, meta Meta) error
-	IsGitRevPresent(repoPath string, rev string) bool
+	AppStatus(appName string) AppStatus
 }
 
-type OnDiskManagedFiles struct { }
+type AppManagedFiles struct {
+	AppConfigs map[string]AppConfig
+}
 
-func (self *OnDiskManagedFiles) IsGitAppPresent(repoPath string) bool {
-	gitFilePath := path.Join(repoPath, ".git")
-	stat, err := os.Stat(gitFilePath)
-	if err == nil && stat.IsDir() {
-		return true
+// TODO(jdtls): consider if there is a binary (and later: library) present, to do some
+// back-checking on it and maybe doing no work if the requested version is already fully present
+func (self *AppManagedFiles) AppStatus(appName string) AppStatus {
+	foundApp, present := self.AppConfigs[appName]
+	if !present { return AppStatus{} }
+
+	statusReport := AppStatus{}
+	statusReport.IsConfigured = true
+	statusReport.DesiredVersion = foundApp.Version
+
+	if foundApp.Flavor == flavorGit {
+		statusReport.SourcePresent = isGitRepoPresent(foundApp.SourcePath())
+		if statusReport.SourcePresent {
+			statusReport.VersionPresent =
+				isGitRevPresent(foundApp.SourcePath(), statusReport.DesiredVersion)
+		}
+	} else {
+		statusReport.SourcePresent = dirExistsNotEmpty(foundApp.SourcePath())
+		statusReport.VersionPresent = statusReport.SourcePresent
 	}
-	return false
+
+	statusReport.TargetPresent = executableExists(foundApp.ArtifactPath())
+	statusReport.LinkPresent = linkExists(foundApp.BinaryPath())
+
+	return statusReport
 }
 
-func (self *OnDiskManagedFiles) DirExistsNotEmpty(path string) bool {
+func isGitRepoPresent(repoPath string) bool {
+	gitFilePath := path.Join(repoPath, ".git")
+	return dirExistsNotEmpty(gitFilePath)
+}
+
+func dirExistsNotEmpty(path string) bool {
 	stat, err := os.Stat(path)
 	if err != nil { return false }
 	if !stat.IsDir() { return false }
@@ -41,7 +58,7 @@ func (self *OnDiskManagedFiles) DirExistsNotEmpty(path string) bool {
 	return len(dirContents) > 0
 }
 
-func (self *OnDiskManagedFiles) ExecutableExists(path string) bool {
+func executableExists(path string) bool {
 	stat, err := os.Stat(path)
 	if err != nil { return false }
 	const anyExecBitmask fs.FileMode = 0111
@@ -54,7 +71,7 @@ func (self *OnDiskManagedFiles) ExecutableExists(path string) bool {
 	return true
 }
 
-func (self *OnDiskManagedFiles) LinkExists(path string) bool {
+func linkExists(path string) bool {
 	stat, err := os.Lstat(path)
 	if err != nil { return false }
 	if stat.Mode() & os.ModeSymlink == 0 {
@@ -63,18 +80,7 @@ func (self *OnDiskManagedFiles) LinkExists(path string) bool {
 	return true
 }
 
-func (self *OnDiskManagedFiles) GetMetaData(path string) Meta {
-	file, err := os.Open(path)
-	if err != nil { return Meta{} }
-
-	metadata := Meta{}
-	err = run.GetStrictDecoder(file).Decode(&metadata)
-	if err != nil { return Meta{} }
-
-	return metadata
-}
-
-func (self *OnDiskManagedFiles) IsGitRevPresent(repoPath string, rev string) bool {
+func isGitRevPresent(repoPath string, rev string) bool {
 	oldWorkingDir, err := os.Getwd()
 	if err != nil { return false }
 	err = os.Chdir(repoPath)
@@ -83,8 +89,4 @@ func (self *OnDiskManagedFiles) IsGitRevPresent(repoPath string, rev string) boo
 	present := git.RevExists(rev)
 	err = os.Chdir(oldWorkingDir)
 	return present
-}
-
-func (self *OnDiskManagedFiles) WriteMetaData(path string, meta Meta) error {
-	return fmt.Errorf("Not yet implemented: WriteMetaData")
 }
