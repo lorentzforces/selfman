@@ -59,7 +59,11 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 	expectedActions := []ops.Operation{
 		ops.GitClone{
 			RepoUrl: *selfmanData.AppConfigs[appToInstall.Name].RemoteRepo,
-			DestinationPath: path.Join(appToInstall.SourcePath()),
+			DestinationPath: appToInstall.SourcePath(),
+		},
+		ops.GitCheckoutRef{
+			RepoPath: appToInstall.SourcePath(),
+			RefName: appToInstall.Version,
 		},
 		// TODO: change this to have an actual build step in it
 		ops.NoBuildOp,
@@ -107,6 +111,10 @@ func TestInstallGitDoesNotCloneIfSourceAlreadyPresent(t *testing.T) {
 
 	expectedActions := []ops.Operation{
 		ops.SkipCloneOp,
+		ops.GitCheckoutRef{
+			RepoPath: appToInstall.SourcePath(),
+			RefName: appToInstall.Version,
+		},
 		ops.NoBuildOp,
 		ops.MoveTarget{
 			SourcePath: path.Join(appToInstall.SourcePath(), appToInstall.Name),

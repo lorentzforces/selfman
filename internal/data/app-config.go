@@ -54,8 +54,12 @@ func (self *AppConfig) SourcePath() string {
 	return path.Join(self.SystemConfig.SourcesPath(), self.Name, self.Version)
 }
 
+// Will replace the path separator if it is found in the version (e.g. "origin/main")
 func (self *AppConfig) ArtifactPath() string {
-	return path.Join(self.SystemConfig.ArtifactsPath(), self.Name + "---" + self.Version)
+	rawFileName := self.Name + "---" + self.Version
+	//escapedFileName := strings.ReplaceAll(rawFileName, string(os.PathSeparator), "#SLASH#")
+	//return path.Join(self.SystemConfig.ArtifactsPath(), escapedFileName)
+	return path.Join(self.SystemConfig.ArtifactsPath(), rawFileName)
 }
 
 func (self *AppConfig) BuildTargetPath() string {
@@ -102,6 +106,18 @@ func (self *AppConfig) GetBuildOp() ops.Operation {
 	panic("Unreachable in theory")
 }
 
+func (self *AppConfig) GetSelectVersionOp() ops.Operation {
+	switch self.Flavor {
+	case flavorGit: {
+		return ops.GitCheckoutRef{
+			RepoPath: self.SourcePath(),
+			RefName: self.Version,
+		}
+	}
+	default: { return ops.NoSelectVersionOp }
+	}
+}
+
 func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 	switch self.Flavor {
 	case flavorGit: {
@@ -114,19 +130,6 @@ func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 
 	run.FailOut(fmt.Sprintf("Unhandled app flavor -> operation mapping: %s", self.Flavor))
 	panic("Unreachable in theory")
-}
-
-func (self *AppConfig) HasExistingArtifactLink() bool {
-	stat, err := os.Lstat(self.BinaryPath())
-	if err != nil { return false }
-
-	// TODO: what if there IS a file and it's not the right file?
-
-	if stat.Mode() & os.ModeSymlink > 0 {
-		return true
-	}
-
-	return false
 }
 
 func (self *AppConfig) applyDefaults() {

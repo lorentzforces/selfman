@@ -50,11 +50,13 @@ func updateApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 	buildTargetPath := app.BuildTargetPath()
 	artifactPath := app.ArtifactPath()
 	binPath := app.BinaryPath()
+	selectVersionOp := app.GetSelectVersionOp()
 	buildOp := app.GetBuildOp()
 	updateOp := app.GetFetchUpdatesOp()
 
 	actions := []ops.Operation{
 		updateOp,
+		selectVersionOp,
 		buildOp,
 		ops.MoveTarget{
 			SourcePath: buildTargetPath,

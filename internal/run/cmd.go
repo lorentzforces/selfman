@@ -47,6 +47,7 @@ type cmdRun struct {
 	name string
 	args []string
 	timeoutSeconds *int
+	workingDir string
 }
 
 type cmdRunOption func(*cmdRun)
@@ -77,6 +78,12 @@ func WithTimeout(seconds int) cmdRunOption {
 	}
 }
 
+func WithWorkingDir(path string) cmdRunOption {
+	return func(c *cmdRun) {
+		c.workingDir = path
+	}
+}
+
 func (self *cmdRun) Exec() error {
 	var cmd *exec.Cmd
 	if self.timeoutSeconds == nil {
@@ -89,6 +96,8 @@ func (self *cmdRun) Exec() error {
 		defer cancel()
 		cmd = exec.CommandContext(ctx, self.name, self.args...)
 	}
+
+	cmd.Dir = self.workingDir
 
 	stdErr := &strings.Builder{}
 	cmd.Stderr = stdErr

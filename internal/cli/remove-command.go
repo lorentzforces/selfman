@@ -8,6 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: implement a full removal option that also removes source files etc
+// TODO: when library support is added, manage removing the library part as well
+
 func CreateRemoveCmd() SelfmanCommand {
 	return SelfmanCommand{
 		cobraCmd: &cobra.Command{
@@ -41,6 +44,9 @@ func removeApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 	if !appStatus.IsConfigured {
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
 	}
+	if !appStatus.SourcePresent {
+		return nil, fmt.Errorf("Application \"%s\" has not been installed, no source present", name)
+	}
 
 	// by default, do not delete the source path
 	actions := []ops.Operation{
@@ -48,9 +54,10 @@ func removeApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 			TypeOfDeletion: "Delete binary symlink",
 			Path: app.BinaryPath(),
 		},
-		ops.DeleteFile{
-			TypeOfDeletion: "Delete built artifact",
-			Path: app.ArtifactPath(),
+		ops.DeleteFilesWithPrefix{
+			TypeOfDeletion: "Delete built artifacts",
+			DirPath: app.SystemConfig.ArtifactsPath(),
+			FilePrefix: app.Name + "---",
 		},
 	}
 

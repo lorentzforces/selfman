@@ -2,7 +2,6 @@ package ops
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/lorentzforces/selfman/internal/git"
 )
@@ -12,24 +11,9 @@ type GitPull struct {
 }
 
 func (self GitPull) Execute() (string, error) {
-	oldWorkingDir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("Determining working dir failed: %w", err)
-	}
-
-	err = os.Chdir(self.RepoPath)
-	if err != nil {
-		return "", fmt.Errorf("Changing to repo dir for pull failed: %w", err)
-	}
-
-	err = git.Pull()
+	err := git.Pull(self.RepoPath)
 	if err != nil {
 		return "", fmt.Errorf("Git pull failed: %w", err)
-	}
-
-	err = os.Chdir(oldWorkingDir)
-	if err != nil {
-		return "", fmt.Errorf("Failed to reset working dir after running build script: %w", err)
 	}
 
 	return "Executed git pull", nil

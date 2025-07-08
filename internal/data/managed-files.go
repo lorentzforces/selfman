@@ -61,6 +61,7 @@ func dirExistsNotEmpty(path string) bool {
 func executableExists(path string) bool {
 	stat, err := os.Stat(path)
 	if err != nil { return false }
+	// rely on the OS mode mask to enforce sanity
 	const anyExecBitmask fs.FileMode = 0111
 	if stat.Mode() & anyExecBitmask == 0 {
 		return false
@@ -81,12 +82,6 @@ func linkExists(path string) bool {
 }
 
 func isGitRevPresent(repoPath string, rev string) bool {
-	oldWorkingDir, err := os.Getwd()
-	if err != nil { return false }
-	err = os.Chdir(repoPath)
-	if err != nil { return false }
-
-	present := git.RevExists(rev)
-	err = os.Chdir(oldWorkingDir)
+	present := git.RevExists(repoPath, rev)
 	return present
 }

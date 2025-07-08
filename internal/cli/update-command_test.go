@@ -63,6 +63,10 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 		ops.GitPull{
 			RepoPath: appToUpdate.SourcePath(),
 		},
+		ops.GitCheckoutRef{
+			RepoPath: appToUpdate.SourcePath(),
+			RefName: appToUpdate.Version,
+		},
 		ops.BuildWithScript{
 			SourcePath: appToUpdate.SourcePath(),
 			ScriptShell: "/bin/sh",
@@ -96,7 +100,6 @@ func TestUpdateCommandErrorsWithNonPresentApp(t *testing.T) {
 	mockStorage.On("AppStatus", notPresentApp.Name).Return(data.AppStatus{
 		IsConfigured: true,
 	})
-
 
 	selfmanData, err := data.SelfmanFromValues(
 		systemConfig,

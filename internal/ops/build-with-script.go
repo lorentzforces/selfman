@@ -2,7 +2,6 @@ package ops
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/lorentzforces/selfman/internal/run"
 )
@@ -14,24 +13,9 @@ type BuildWithScript struct {
 }
 
 func (self BuildWithScript) Execute() (string, error) {
-	oldWorkingDir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("Determining working dir failed: %w", err)
-	}
-
-	err = os.Chdir(self.SourcePath)
-	if err != nil {
-		return "", fmt.Errorf("Changing to build dir failed: %w", err)
-	}
-
-	err = run.NewCmd(self.ScriptShell, run.WithArgs("-c", self.ScriptCmd)).Exec()
+	err := run.NewCmd(self.ScriptShell, run.WithArgs("-c", self.ScriptCmd), run.WithWorkingDir(self.SourcePath)).Exec()
 	if err != nil {
 		return "", fmt.Errorf("Error while running build script: %w", err)
-	}
-
-	err = os.Chdir(oldWorkingDir)
-	if err != nil {
-		return "", fmt.Errorf("Failed to reset working dir after running build script: %w", err)
 	}
 
 	return "Executed build script", nil

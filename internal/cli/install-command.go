@@ -59,9 +59,11 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 		}
 	}
 	buildOp := app.GetBuildOp()
+	selectVersionOp := app.GetSelectVersionOp()
 
 	actions := []ops.Operation{
 		getSourceOp,
+		selectVersionOp,
 		buildOp,
 		ops.MoveTarget{
 			SourcePath: buildTargetPath,
