@@ -14,6 +14,7 @@ func CreateListCmd() SelfmanCommand {
 		cobraCmd: &cobra.Command{
 			Use: "list",
 			Short: "List all applications managed by selfman",
+			Aliases: []string{ "ls" },
 		},
 		runFunc: runListCmd,
 	}
@@ -39,7 +40,7 @@ type listCmdResult struct {
 func (self listCmdResult) String() string {
 	var buf strings.Builder
 	for _, result := range self.results {
-		buf.WriteString(fmt.Sprintf("%s (%s)\n", result.name, result.status))
+		buf.WriteString(fmt.Sprintf("%s @ %s (%s)\n", result.name, result.version, result.status))
 	}
 
 	return buf.String()
@@ -47,6 +48,7 @@ func (self listCmdResult) String() string {
 
 type listResult struct {
 	name string
+	version string
 	status string
 }
 
@@ -54,7 +56,10 @@ func listApplications(selfmanData data.Selfman) []listResult {
 	results := make([]listResult, 0, len(selfmanData.AppConfigs))
 	for _, app := range selfmanData.AppConfigs {
 		_, status := selfmanData.AppStatus(app.Name)
-		results = append(results, listResult{name: app.Name, status: status.Label()})
+		results = append(
+			results,
+			listResult{ name: app.Name, version: app.Version, status: status.Label() },
+		)
 	}
 
 	slices.SortFunc(results, func(a, b listResult) int {

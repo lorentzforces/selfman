@@ -12,11 +12,13 @@ type LinkArtifact struct {
 }
 
 func (self LinkArtifact) Execute() (string, error) {
-	err := os.Symlink(self.SourcePath, self.DestinationPath)
-
-	if err != nil && !errors.Is(err, os.ErrExist) {
-		return "", fmt.Errorf("Linking artifact failed: %w", err)
+	err := os.Remove(self.DestinationPath)
+	if err != nil && ! errors.Is(err, os.ErrNotExist) {
+		return "", fmt.Errorf("Linking artifact failed while deleting existing link: %w", err)
 	}
+
+	err = os.Symlink(self.SourcePath, self.DestinationPath)
+	if err != nil { return "", fmt.Errorf("Linking artifact failed: %w", err) }
 	return "Linked artifact", nil
 }
 

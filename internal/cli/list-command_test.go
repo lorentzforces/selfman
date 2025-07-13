@@ -67,9 +67,9 @@ func TestAppStatusesAreReflected(t *testing.T) {
 	results := listApplications(selfmanData)
 
 	expected := []listResult{
-		{ name: presentApp.Name, status: data.AppStatusLinkPresent },
-		{ name: notPresentApp.Name, status: data.AppStatusIsConfigured },
-		{ name: inconsistentApp.Name, status: data.AppStatusInconsistent },
+		{ name: presentApp.Name, version: "main", status: data.AppStatusLinkPresent },
+		{ name: notPresentApp.Name, version: "main", status: data.AppStatusIsConfigured },
+		{ name: inconsistentApp.Name, version: "main", status: data.AppStatusInconsistent },
 	}
 	assert.ElementsMatch(t, expected, results)
 }
@@ -139,11 +139,11 @@ func TestAppsAreSortedInLexicalOrder(t *testing.T) {
 	results := listApplications(selfmanData)
 
 	expected := []listResult{
-		{ name: alphaApp.Name, status: data.AppStatusIsConfigured },
-		{ name: bravoApp.Name, status: data.AppStatusIsConfigured },
-		{ name: charlieApp.Name, status: data.AppStatusIsConfigured },
-		{ name: deltaApp.Name, status: data.AppStatusIsConfigured },
-		{ name: foxtrotApp.Name, status: data.AppStatusIsConfigured },
+		{ name: alphaApp.Name, version: "main", status: data.AppStatusIsConfigured },
+		{ name: bravoApp.Name, version: "main", status: data.AppStatusIsConfigured },
+		{ name: charlieApp.Name, version: "main", status: data.AppStatusIsConfigured },
+		{ name: deltaApp.Name, version: "main", status: data.AppStatusIsConfigured },
+		{ name: foxtrotApp.Name, version: "main", status: data.AppStatusIsConfigured },
 	}
 	assert.Equal(t, expected, results)
 }

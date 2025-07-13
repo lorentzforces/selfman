@@ -26,12 +26,11 @@ const (
 
 	buildActionScript = "script"
 
-	updateActionGitPull = "git-pull"
+	updateActionGitFetch = "git-fetch"
 )
 
 // TODO: do we want to continue using the same struct for serialization and runtime usage?
 // TODO: make some form of config file with explainers (potentially accessible via command)
-// TODO(jdtls): version-label (and then how do we track version history?)
 // TODO(jdtls): support some kind of "library" or "dir" target as well as the binary target, which
 //              puts the full directory tree somewhere well-known
 type AppConfig struct {
@@ -39,7 +38,6 @@ type AppConfig struct {
 	Name string
 	Flavor string
 	Version string
-	BaseType string `yaml:"base-type"` // let config files keep this around a little bit (unused)
 	BuildAction string `yaml:"build-action"`
 	BuildTarget string `yaml:"build-target"`
 	RemoteRepo *string `yaml:"remote-repo,omitempty"`
@@ -57,9 +55,8 @@ func (self *AppConfig) SourcePath() string {
 // Will replace the path separator if it is found in the version (e.g. "origin/main")
 func (self *AppConfig) ArtifactPath() string {
 	rawFileName := self.Name + "---" + self.Version
-	//escapedFileName := strings.ReplaceAll(rawFileName, string(os.PathSeparator), "#SLASH#")
-	//return path.Join(self.SystemConfig.ArtifactsPath(), escapedFileName)
-	return path.Join(self.SystemConfig.ArtifactsPath(), rawFileName)
+	escapedFileName := strings.ReplaceAll(rawFileName, string(os.PathSeparator), "#SLASH#")
+	return path.Join(self.SystemConfig.ArtifactsPath(), escapedFileName)
 }
 
 func (self *AppConfig) BuildTargetPath() string {
@@ -75,10 +72,16 @@ func (self *AppConfig) GetInstallOp() ops.Operation {
 	case flavorGit: {
 		return ops.GitClone{
 			RepoUrl: *self.RemoteRepo,
-			DestinationPath: self.BuildTarget,
+			DestinationPath: self.SourcePath(),
 		}
 	}
-	// TODO: flavorWebFetch
+	case flavorWebFetch: {
+		return ops.FetchFromWeb{
+			SourceUrl: *self.WebUrl,
+			Version: self.Version,
+			DestinationDir: self.SourcePath(),
+		}
+	}
 	}
 
 	run.FailOut(fmt.Sprintf(
@@ -121,7 +124,7 @@ func (self *AppConfig) GetSelectVersionOp() ops.Operation {
 func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 	switch self.Flavor {
 	case flavorGit: {
-		return ops.GitPull{
+		return ops.GitFetch{
 			RepoPath: self.SourcePath(),
 		}
 	}

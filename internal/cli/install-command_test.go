@@ -27,7 +27,7 @@ func TestInstallCommandValidatesNameExists(t *testing.T) {
 	)
 }
 
-func TestInstallCommandProducesSaneOperations(t *testing.T) {
+func TestInstallGitProducesSaneOperations(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
 
 	appToInstall := data.AppConfig{
@@ -35,7 +35,8 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 		Name: "git-repo-app",
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
-		BuildAction: "none",
+		BuildAction: "script",
+		BuildCmd: run.StrPtr("make build"),
 		Version: "main",
 	}
 
@@ -65,8 +66,11 @@ func TestInstallCommandProducesSaneOperations(t *testing.T) {
 			RepoPath: appToInstall.SourcePath(),
 			RefName: appToInstall.Version,
 		},
-		// TODO: change this to have an actual build step in it
-		ops.NoBuildOp,
+		ops.BuildWithScript{
+			SourcePath: appToInstall.SourcePath(),
+			ScriptShell: "/bin/sh",
+			ScriptCmd: "make build",
+		},
 		ops.MoveTarget{
 			SourcePath: path.Join(appToInstall.SourcePath(), appToInstall.Name),
 			DestinationPath: appToInstall.ArtifactPath(),
@@ -116,6 +120,60 @@ func TestInstallGitDoesNotCloneIfSourceAlreadyPresent(t *testing.T) {
 			RefName: appToInstall.Version,
 		},
 		ops.NoBuildOp,
+		ops.MoveTarget{
+			SourcePath: path.Join(appToInstall.SourcePath(), appToInstall.Name),
+			DestinationPath: appToInstall.ArtifactPath(),
+		},
+		ops.LinkArtifact{
+			SourcePath: appToInstall.ArtifactPath(),
+			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToInstall.Name),
+		},
+	}
+	assert.Equal(t, expectedActions, actions)
+}
+
+func TestInstallWebFetchProducesSaneOperations(t *testing.T) {
+	systemConfig := data.DefaultTestConfig()
+
+	appToInstall := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "web-fetch-app",
+		Flavor: "web-fetch",
+		Version: "1.69.500",
+		WebUrl: run.StrPtr("https://example.com/%VERSION%/web-fetch-app-%VERSION%.zip"),
+		BuildAction: "script",
+		BuildCmd: run.StrPtr("tar -xzf web-fetch-app-*.zip"),
+	}
+
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", appToInstall.Name).Return(data.AppStatus{
+		IsConfigured: true,
+	})
+
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{ appToInstall },
+		&mockStorage,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	actions, err := installApp(appToInstall.Name, selfmanData)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	expectedActions := []ops.Operation{
+		ops.FetchFromWeb{
+			SourceUrl: *appToInstall.WebUrl,
+			Version: appToInstall.Version,
+			DestinationDir: appToInstall.SourcePath(),
+		},
+		ops.NoSelectVersionOp,
+		ops.BuildWithScript{
+			SourcePath: appToInstall.SourcePath(),
+			ScriptShell: "/bin/sh",
+			ScriptCmd: "tar -xzf web-fetch-app-*.zip",
+		},
 		ops.MoveTarget{
 			SourcePath: path.Join(appToInstall.SourcePath(), appToInstall.Name),
 			DestinationPath: appToInstall.ArtifactPath(),

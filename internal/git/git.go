@@ -15,12 +15,22 @@ func Clone(url string, destPath string) error {
 	return run.NewCmd("git", run.WithArgs("clone", url, destPath), run.WithTimeout(30)).Exec()
 }
 
-func Pull(repoPath string) error {
-	return run.NewCmd("git", run.WithArgs("pull", "-c", repoPath), run.WithTimeout(30)).Exec()
+func Fetch(repoPath string) error {
+	return run.NewCmd(
+		"git",
+		run.WithArgs("fetch", "--tags"),
+		run.WithTimeout(30),
+		run.WithWorkingDir(repoPath),
+	).Exec()
 }
 
 func Checkout(repoPath string, ref string) error {
-	return run.NewCmd("git", run.WithArgs("checkout", "-c", repoPath, ref), run.WithTimeout(30)).Exec()
+	return run.NewCmd(
+		"git",
+		run.WithArgs("checkout", ref),
+		run.WithTimeout(5),
+		run.WithWorkingDir(repoPath),
+	).Exec()
 }
 
 func RevExists(repoPath string, revName string) bool {
@@ -37,16 +47,6 @@ func RevExists(repoPath string, revName string) bool {
 			revName + "^{commit}",
 		),
 	).Exec()
-	// really hacky - if we don't find a rev
-	if err != nil {
-		err = run.NewCmd(
-			"git",
-			run.WithArgs(
-				"rev-parse", "--verify", "--end-of-options",
-				"origin/" + revName + "^{commit}",
-			),
-		).Exec()
-	}
 
 	return err == nil
 }

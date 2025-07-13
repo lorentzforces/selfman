@@ -2,6 +2,8 @@ package ops
 
 import (
 	"fmt"
+
+	"github.com/lorentzforces/selfman/internal/git"
 )
 
 type GitCheckoutRef struct {
@@ -10,7 +12,9 @@ type GitCheckoutRef struct {
 }
 
 func (self GitCheckoutRef) Execute() (string, error) {
-	return "", fmt.Errorf("Not yet implemented: GitCheckoutRef::Execute")
+	err := git.Checkout(self.RepoPath, self.RefName)
+	if err != nil { return "", fmt.Errorf("Git checkout failed: %w", err) }
+	return "Executed git checkout", nil
 }
 
 func (self GitCheckoutRef) Describe() OpDescription {

@@ -43,20 +43,16 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
 	}
 
-	// TODO: right now we only support apps of type git
-	repoPath := app.SourcePath()
 	buildTargetPath := app.BuildTargetPath()
 	artifactPath := app.ArtifactPath()
 	binPath := app.BinaryPath()
 
 	var getSourceOp ops.Operation
 	if appStatus.SourcePresent {
+		// TODO: name this more generally (or alternatively make it more specific per-app-type)
 		getSourceOp = ops.SkipCloneOp
 	} else {
-		getSourceOp = ops.GitClone{
-			RepoUrl: *app.RemoteRepo,
-			DestinationPath: repoPath,
-		}
+		getSourceOp = app.GetInstallOp()
 	}
 	buildOp := app.GetBuildOp()
 	selectVersionOp := app.GetSelectVersionOp()

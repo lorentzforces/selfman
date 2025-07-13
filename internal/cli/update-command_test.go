@@ -60,7 +60,7 @@ func TestUpdateCommandProducesSaneOperations(t *testing.T) {
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 	expectedActions := []ops.Operation{
-		ops.GitPull{
+		ops.GitFetch{
 			RepoPath: appToUpdate.SourcePath(),
 		},
 		ops.GitCheckoutRef{
