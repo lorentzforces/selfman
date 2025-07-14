@@ -29,13 +29,3 @@ var NoBuildOp = NoOp{
 	TypeOfNoOp: "build",
 	Description: "This application does not need to be built",
 }
-
-var NoUpdateOp = NoOp{
-	TypeOfNoOp: "update",
-	Description: "This application does not update",
-}
-
-var NoSelectVersionOp = NoOp{
-	TypeOfNoOp: "select version",
-	Description: "This application does not do in-place operations to switch between versions",
-}

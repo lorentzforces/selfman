@@ -168,7 +168,6 @@ func TestInstallWebFetchProducesSaneOperations(t *testing.T) {
 			Version: appToInstall.Version,
 			DestinationDir: appToInstall.SourcePath(),
 		},
-		ops.NoSelectVersionOp,
 		ops.BuildWithScript{
 			SourcePath: appToInstall.SourcePath(),
 			ScriptShell: "/bin/sh",

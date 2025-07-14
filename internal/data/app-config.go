@@ -67,7 +67,7 @@ func (self *AppConfig) BinaryPath() string {
 	return path.Join(*self.SystemConfig.BinaryDir, self.Name)
 }
 
-func (self *AppConfig) GetInstallOp() ops.Operation {
+func (self *AppConfig) GetObtainSourceOp() ops.Operation {
 	switch self.Flavor{
 	case flavorGit: {
 		return ops.GitClone{
@@ -109,6 +109,8 @@ func (self *AppConfig) GetBuildOp() ops.Operation {
 	panic("Unreachable in theory")
 }
 
+// Returns the operation to select the appropriate version for the application, if the application
+// flavor requires such an operation. If not, returns nil.
 func (self *AppConfig) GetSelectVersionOp() ops.Operation {
 	switch self.Flavor {
 	case flavorGit: {
@@ -117,7 +119,7 @@ func (self *AppConfig) GetSelectVersionOp() ops.Operation {
 			RefName: self.Version,
 		}
 	}
-	default: { return ops.NoSelectVersionOp }
+	default: { return nil }
 	}
 }
 

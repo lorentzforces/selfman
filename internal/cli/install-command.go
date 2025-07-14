@@ -47,20 +47,23 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 	artifactPath := app.ArtifactPath()
 	binPath := app.BinaryPath()
 
-	var getSourceOp ops.Operation
-	if appStatus.SourcePresent {
-		// TODO: name this more generally (or alternatively make it more specific per-app-type)
-		getSourceOp = ops.SkipCloneOp
-	} else {
-		getSourceOp = app.GetInstallOp()
-	}
-	buildOp := app.GetBuildOp()
-	selectVersionOp := app.GetSelectVersionOp()
+	actions := make([]ops.Operation, 0, 10)
 
-	actions := []ops.Operation{
-		getSourceOp,
-		selectVersionOp,
-		buildOp,
+	appSourceOp := app.GetObtainSourceOp()
+	_, isGitApp := appSourceOp.(ops.GitClone)
+	if isGitApp && appStatus.SourcePresent {
+		actions = append(actions, ops.SkipCloneOp)
+	} else {
+		actions = append(actions, appSourceOp)
+	}
+
+	if versionOp := app.GetSelectVersionOp(); versionOp != nil {
+		actions = append(actions, versionOp)
+	}
+
+	actions = append(
+		actions,
+		app.GetBuildOp(),
 		ops.MoveTarget{
 			SourcePath: buildTargetPath,
 			DestinationPath: artifactPath,
@@ -69,6 +72,7 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 			SourcePath: artifactPath,
 			DestinationPath: binPath,
 		},
-	}
+	)
+
 	return actions, nil
 }
