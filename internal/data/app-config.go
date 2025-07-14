@@ -19,9 +19,6 @@ const (
 
 	actionNone = "none"
 
-	installActionGitClone = "git-clone"
-	installActionWebDownload = "web-download"
-
 	// TODO: select version (does this need to be an operation?)
 
 	buildActionScript = "script"
@@ -43,6 +40,7 @@ type AppConfig struct {
 	RemoteRepo *string `yaml:"remote-repo,omitempty"`
 	BuildCmd *string `yaml:"build-cmd,omitempty"`
 	WebUrl *string `yaml:"web-url,omitempty"`
+	KeepBinWithSource bool `yaml:"keep-bin-with-source"`
 }
 
 func (self *AppConfig) SourcePath() string {
@@ -54,8 +52,12 @@ func (self *AppConfig) SourcePath() string {
 
 // Will replace the path separator if it is found in the version (e.g. "origin/main")
 func (self *AppConfig) ArtifactPath() string {
+	if self.KeepBinWithSource {
+		return self.BuildTargetPath()
+	}
+
 	rawFileName := self.Name + "---" + self.Version
-	escapedFileName := strings.ReplaceAll(rawFileName, string(os.PathSeparator), "#SLASH#")
+	escapedFileName := strings.ReplaceAll(rawFileName, string(os.PathSeparator), "%SLASH%")
 	return path.Join(self.SystemConfig.ArtifactsPath(), escapedFileName)
 }
 

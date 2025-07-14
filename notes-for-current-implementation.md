@@ -24,12 +24,7 @@ e.g. `origin/main` -> `origin#SLASH#main`
 
 > **NOTE:** For the purposes of the source directory, the version label for a git app is always "git"
 
-Major changes from earlier ideas/current state:
-- operations which get the app status will now specify a version label and the status only considers that version
-- git apps check for a rev which matches the version label (like a branch or tag)
-- we mostly don't concern ourselves with which version is curently in use - we re-create the symlink to the binary no matter what, and all other operations are only concerned with state on the filesystem
-
-**TODO:** Change the filesystem abstraction to handle dealing with filepaths so testing doesn't need to give a shit about path strings (possibly construct a filesystem abstraction object with a reference to an app config, so it can ask the app config for file paths if necessary, and also determine what flavor of app it is, etc)
+**TODO:** potentially merge "install" and "update" operations to just be "make it so" for a given app
 
 CURRENT OBSTACLE: jdtls's executable (a python script) expects that it is living in the file structure you download, so moving the executable out doesn't work. Some solutions might include:
 - linking directly into the sources dir

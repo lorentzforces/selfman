@@ -184,3 +184,53 @@ func TestInstallWebFetchProducesSaneOperations(t *testing.T) {
 	}
 	assert.Equal(t, expectedActions, actions)
 }
+
+func TestInstallAppKeepingBinInPlace(t *testing.T) {
+	systemConfig := data.DefaultTestConfig()
+
+	appToInstall := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "no-move-bin-app",
+		Flavor: "web-fetch",
+		Version: "1.0.0",
+		WebUrl: run.StrPtr("https://example.com/%VERSION%/app.zip"),
+		BuildAction: "script",
+		BuildCmd: run.StrPtr("exit 0"),
+		KeepBinWithSource: true,
+	}
+
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", appToInstall.Name).Return(data.AppStatus{
+		IsConfigured: true,
+	})
+
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{ appToInstall },
+		&mockStorage,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	actions, err := installApp(appToInstall.Name, selfmanData)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	expectedActions := []ops.Operation{
+		ops.FetchFromWeb{
+			SourceUrl: *appToInstall.WebUrl,
+			Version: appToInstall.Version,
+			DestinationDir: appToInstall.SourcePath(),
+		},
+		ops.BuildWithScript{
+			SourcePath: appToInstall.SourcePath(),
+			ScriptShell: "/bin/sh",
+			ScriptCmd: *appToInstall.BuildCmd,
+		},
+		ops.LinkArtifact{
+			SourcePath: path.Join(appToInstall.SourcePath(), appToInstall.Name),
+			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, appToInstall.Name),
+		},
+	}
+	assert.Equal(t, expectedActions, actions)
+}

@@ -61,13 +61,20 @@ func installApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) 
 		actions = append(actions, versionOp)
 	}
 
+	actions = append(actions, app.GetBuildOp())
+
+	if !app.KeepBinWithSource {
+		actions = append(
+			actions,
+			ops.MoveTarget{
+				SourcePath: buildTargetPath,
+				DestinationPath: artifactPath,
+			},
+		)
+	}
+
 	actions = append(
 		actions,
-		app.GetBuildOp(),
-		ops.MoveTarget{
-			SourcePath: buildTargetPath,
-			DestinationPath: artifactPath,
-		},
 		ops.LinkArtifact{
 			SourcePath: artifactPath,
 			DestinationPath: binPath,
