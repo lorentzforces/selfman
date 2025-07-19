@@ -30,6 +30,7 @@ func CreateRootCmd() *cobra.Command {
 			CreateListCmd(),
 			CreateInstallCmd(),
 			CreateUpdateCmd(),
+			CreateMakeItSoCmd(),
 			CreateCheckCmd(),
 			CreateRemoveCmd(),
 		},
