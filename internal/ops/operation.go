@@ -7,7 +7,7 @@ import "strings"
 // An operation to be performed by selfman.
 // These will typically be mutating operations to change selfman's managed state.
 //
-// TODO: still undetermined whether non-mutating, purely-informational things (like "list
+// TODO: still on the fence whether non-mutating, purely-informational things (like "list
 // configured apps") should be implemented as Operations or if that's just a thing a command
 // does at the end of its execution.
 type Operation interface {

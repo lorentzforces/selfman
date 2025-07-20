@@ -17,8 +17,6 @@ type AppManagedFiles struct {
 	AppConfigs map[string]AppConfig
 }
 
-// TODO(jdtls): consider if there is a binary (and later: library) present, to do some
-// back-checking on it and maybe doing no work if the requested version is already fully present
 func (self *AppManagedFiles) AppStatus(appName string) AppStatus {
 	foundApp, present := self.AppConfigs[appName]
 	if !present { return AppStatus{} }
