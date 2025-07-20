@@ -13,6 +13,8 @@ type GitCheckoutRef struct {
 
 func (self GitCheckoutRef) Execute() (string, error) {
 	err := git.Checkout(self.RepoPath, self.RefName)
+	// TODO: consider figuring out some more graceful way of handling the case where the requested
+	// ref just doesn't exist
 	if err != nil { return "", fmt.Errorf("Git checkout failed: %w", err) }
 	return "Executed git checkout", nil
 }

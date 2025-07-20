@@ -13,17 +13,15 @@ import (
 )
 
 const (
-	flavorGit = "git"
-	flavorWebFetch = "web-fetch"
+	FlavorGit = "git"
+	FlavorWebFetch = "web-fetch"
 	// TODO: binaryFile
 
-	actionNone = "none"
+	ActionNone = "none"
 
-	// TODO: select version (does this need to be an operation?)
+	BuildActionScript = "script"
 
-	buildActionScript = "script"
-
-	updateActionGitFetch = "git-fetch"
+	UpdateActionGitFetch = "git-fetch"
 )
 
 // TODO: do we want to continue using the same struct for serialization and runtime usage?
@@ -44,7 +42,7 @@ type AppConfig struct {
 }
 
 func (self *AppConfig) SourcePath() string {
-	if self.Flavor == flavorGit {
+	if self.Flavor == FlavorGit {
 		return path.Join(self.SystemConfig.SourcesPath(), self.Name, "git")
 	}
 	return path.Join(self.SystemConfig.SourcesPath(), self.Name, self.Version)
@@ -71,13 +69,13 @@ func (self *AppConfig) BinaryPath() string {
 
 func (self *AppConfig) GetObtainSourceOp() ops.Operation {
 	switch self.Flavor{
-	case flavorGit: {
+	case FlavorGit: {
 		return ops.GitClone{
 			RepoUrl: *self.RemoteRepo,
 			DestinationPath: self.SourcePath(),
 		}
 	}
-	case flavorWebFetch: {
+	case FlavorWebFetch: {
 		return ops.FetchFromWeb{
 			SourceUrl: *self.WebUrl,
 			Version: self.Version,
@@ -95,10 +93,10 @@ func (self *AppConfig) GetObtainSourceOp() ops.Operation {
 
 func (self *AppConfig) GetBuildOp() ops.Operation {
 	switch self.BuildAction {
-	case actionNone: {
+	case ActionNone: {
 		return ops.NoBuildOp
 	}
-	case buildActionScript: {
+	case BuildActionScript: {
 		return ops.BuildWithScript{
 			SourcePath: self.SourcePath(),
 			ScriptShell: *self.SystemConfig.ScriptShell,
@@ -115,7 +113,7 @@ func (self *AppConfig) GetBuildOp() ops.Operation {
 // flavor requires such an operation. If not, returns nil.
 func (self *AppConfig) GetSelectVersionOp() ops.Operation {
 	switch self.Flavor {
-	case flavorGit: {
+	case FlavorGit: {
 		return ops.GitCheckoutRef{
 			RepoPath: self.SourcePath(),
 			RefName: self.Version,
@@ -127,16 +125,15 @@ func (self *AppConfig) GetSelectVersionOp() ops.Operation {
 
 func (self *AppConfig) GetFetchUpdatesOp() ops.Operation {
 	switch self.Flavor {
-	case flavorGit: {
+	case FlavorGit: {
 		return ops.GitFetch{
 			RepoPath: self.SourcePath(),
 		}
 	}
-	// TODO: flavorWebFetch
+	default: {
+		return nil
 	}
-
-	run.FailOut(fmt.Sprintf("Unhandled app flavor -> operation mapping: %s", self.Flavor))
-	panic("Unreachable in theory")
+	}
 }
 
 func (self *AppConfig) applyDefaults() {
@@ -159,14 +156,14 @@ func (self *AppConfig) validate() error {
 		return fmt.Errorf("(app %s) Invalid build action: %s", self.Name, self.BuildAction)
 	}
 
-	if self.Flavor == flavorGit && self.RemoteRepo == nil {
+	if self.Flavor == FlavorGit && self.RemoteRepo == nil {
 		return fmt.Errorf(
-			"(app %s) Remote repo must be specified for apps of flavor %s", self.Name, flavorGit)
+			"(app %s) Remote repo must be specified for apps of flavor %s", self.Name, FlavorGit)
 	}
 
-	if self.Flavor == flavorWebFetch && self.WebUrl == nil {
+	if self.Flavor == FlavorWebFetch && self.WebUrl == nil {
 		return fmt.Errorf(
-			"(app %s) Web URL must be specified for apps of flavor %s", self.Name, flavorWebFetch)
+			"(app %s) Web URL must be specified for apps of flavor %s", self.Name, FlavorWebFetch)
 	}
 
 	return nil
@@ -174,15 +171,15 @@ func (self *AppConfig) validate() error {
 
 func (self *AppConfig) isValidAppFlavor() bool {
 	switch self.Flavor {
-	case flavorGit: return true
-	case flavorWebFetch: return true
+	case FlavorGit: return true
+	case FlavorWebFetch: return true
 	default: return false
 	}
 }
 
 func (self *AppConfig) isValidBuildAction() bool {
 	switch self.BuildAction {
-	case actionNone, buildActionScript: return true
+	case ActionNone, BuildActionScript: return true
 	default: return false
 	}
 }

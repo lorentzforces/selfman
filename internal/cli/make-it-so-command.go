@@ -42,10 +42,49 @@ func runMakeItSoCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 }
 
 func makeItSo(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
-	_, appStatus := selfmanData.AppStatus(name)
+	app, appStatus := selfmanData.AppStatus(name)
 	if !appStatus.IsConfigured {
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
 	}
 
-	return []ops.Operation{ }, nil
+	buildTargetPath := app.BuildTargetPath()
+	artifactPath := app.ArtifactPath()
+	binPath := app.BinaryPath()
+
+	actions := make([]ops.Operation, 0, 10)
+
+	fetchUpdatesOp := app.GetFetchUpdatesOp()
+	if !appStatus.SourcePresent {
+		actions = append(actions, app.GetObtainSourceOp())
+	} else if appStatus.SourcePresent && fetchUpdatesOp != nil {
+		// don't need to fetch updates if we just obtained the source
+		actions = append(actions, app.GetFetchUpdatesOp())
+	}
+
+	if versionOp := app.GetSelectVersionOp(); versionOp != nil {
+		actions = append(actions, versionOp)
+	}
+
+	if !appStatus.TargetPresent {
+		actions = append(actions, app.GetBuildOp())
+		if !app.KeepBinWithSource {
+			actions = append(
+				actions,
+				ops.MoveTarget{
+					SourcePath: buildTargetPath,
+					DestinationPath: artifactPath,
+				},
+			)
+		}
+	}
+
+	actions = append(
+		actions,
+		ops.LinkArtifact{
+			SourcePath: artifactPath,
+			DestinationPath: binPath,
+		},
+	)
+
+	return actions, nil
 }

@@ -27,7 +27,7 @@ func (self *AppManagedFiles) AppStatus(appName string) AppStatus {
 	statusReport.IsConfigured = true
 	statusReport.DesiredVersion = foundApp.Version
 
-	if foundApp.Flavor == flavorGit {
+	if foundApp.Flavor == FlavorGit {
 		statusReport.SourcePresent = isGitRepoPresent(foundApp.SourcePath())
 		if statusReport.SourcePresent {
 			statusReport.VersionPresent =
