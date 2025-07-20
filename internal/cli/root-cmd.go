@@ -28,8 +28,6 @@ func CreateRootCmd() *cobra.Command {
 		rootCmd,
 		[]SelfmanCommand{
 			CreateListCmd(),
-			CreateInstallCmd(),
-			CreateUpdateCmd(),
 			CreateMakeItSoCmd(),
 			CreateCheckCmd(),
 			CreateRemoveCmd(),
