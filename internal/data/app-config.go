@@ -39,6 +39,7 @@ type AppConfig struct {
 	BuildCmd *string `yaml:"build-cmd,omitempty"`
 	WebUrl *string `yaml:"web-url,omitempty"`
 	KeepBinWithSource bool `yaml:"keep-bin-with-source"`
+	MiscVars map[string]string `yaml:"misc-vars"`
 }
 
 func (self *AppConfig) SourcePath() string {
@@ -142,6 +143,68 @@ func (self *AppConfig) applyDefaults() {
 	}
 }
 
+// Will apply misc vars to replace appropriate placeholders in these fields:
+//   - BuildAction
+//   - BuildTarget
+//   - BuildCmd
+//   - WebUrl
+func (self *AppConfig) applyMiscVarsToPlaceholders() error {
+	self.MiscVars["VERSION"] = self.Version
+
+	var err error
+	self.BuildAction, err = replacePlaceholders(self.BuildAction, self.MiscVars)
+	if err != nil {
+		return errors.Join(fmt.Errorf("Error filling placeholders in BuildAction"), err)
+	}
+	self.BuildTarget, err = replacePlaceholders(self.BuildTarget, self.MiscVars)
+	if err != nil {
+		return errors.Join(fmt.Errorf("Error filling placeholders in BuildTarget"), err)
+	}
+	if self.BuildCmd != nil {
+		*self.BuildCmd, err = replacePlaceholders(*self.BuildCmd, self.MiscVars)
+		if err != nil {
+			return errors.Join(fmt.Errorf("Error filling placeholders in BuildCmd"), err)
+		}
+	}
+	if self.WebUrl != nil {
+		*self.WebUrl, err = replacePlaceholders(*self.WebUrl, self.MiscVars)
+		if err != nil {
+			return errors.Join(fmt.Errorf("Error filling placeholders in WebUrl"), err)
+		}
+	}
+
+	return nil
+}
+
+var placeholderPattern = regexp.MustCompile(`%(?<label>[-A-Za-z_]{3,})%`)
+// CAPTURE GROUPS (submatches) label: 1
+func replacePlaceholders(original string, keyVals map[string]string) (string, error) {
+	matches := placeholderPattern.FindAllStringSubmatch(original, 32)
+	if matches == nil { return original, nil }
+
+	finalString := original
+	badLabels := make([]string, 0)
+	for _, match := range matches {
+		label := match[1]
+		labelVal, labelPresent := keyVals[label]
+		if labelPresent {
+			finalString = strings.ReplaceAll(finalString, "%" + label + "%", labelVal)
+		} else {
+			badLabels = append(badLabels, label)
+		}
+	}
+
+	if len(badLabels) > 0 {
+		return finalString, fmt.Errorf(
+			"Placeholder labels referenced but no value found: %s",
+			strings.Join(badLabels, ", "),
+		)
+	}
+
+	return finalString, nil
+}
+
+var validLabelPattern = regexp.MustCompile(`\A[-A-Za-z_]*\z`)
 // Validates an application config - error will be non-nil if validation failed.
 func (self *AppConfig) validate() error {
 	if len(self.Name) == 0 {
@@ -164,6 +227,24 @@ func (self *AppConfig) validate() error {
 	if self.Flavor == FlavorWebFetch && self.WebUrl == nil {
 		return fmt.Errorf(
 			"(app %s) Web URL must be specified for apps of flavor %s", self.Name, FlavorWebFetch)
+	}
+
+	for label, _ := range self.MiscVars {
+		if nil == validLabelPattern.FindStringIndex(label) {
+			return fmt.Errorf(
+				"(app %s) Label \"%s\" must be only upper & lower case letters, hyphens, and " +
+					"underscores",
+				self.Name, label,
+			)
+		}
+
+		// all our valid characters are 1-byte in utf-8, so this is reasonable
+		if len(label) < 3 {
+			return fmt.Errorf(
+				"(app %s) Label \"%s\" is less than the required three characters",
+				self.Name, label,
+			)
+		}
 	}
 
 	return nil
