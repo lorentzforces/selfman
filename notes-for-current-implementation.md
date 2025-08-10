@@ -1,5 +1,7 @@
 ## Big TODOS
 
+Biggest priority: make "library" apps a thing. The LSP setup for jdtls requires passing several direct paths to various files inside the jdtls directory structure, and having to keep an explicit version number in that configuration is a pain. Reasonable default is something like `~/.local/lib/selfman/[name]` with a system-level config to change the base lib directory.
+
 Need to update git app handling to rebuild if/when you've gotten fresh commits on a branch. Right now selfman will see that the version name has not changed, and therefore won't rebuild the app since the target artifact already exists. For now this can be clunkily worked around by running the 'remove' operation and then updating the app again, but this is basically the standard usage for a git app and so should be fixed. Probably could be done via a git-aware build operation (new operation type) which is initialized with a commit hash, and then skips the build if the current commit hash matches that hash. Alternatively (and this may be preferable for branch-switching reasons), might consider adding the commit hash to the artifact naming convention so it can be compared later.
 
 Relatedly, the check command needs some work:
