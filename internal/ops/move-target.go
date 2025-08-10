@@ -2,7 +2,8 @@ package ops
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/lorentzforces/selfman/internal/run"
 )
 
 type MoveTarget struct {
@@ -11,7 +12,7 @@ type MoveTarget struct {
 }
 
 func (self MoveTarget) Execute() (string, error) {
-	err := os.Rename(self.SourcePath, self.DestinationPath)
+	err := run.MoveFile(self.SourcePath, self.DestinationPath)
 	if err != nil {
 		return "", fmt.Errorf("Target move failed: %w", err)
 	}
