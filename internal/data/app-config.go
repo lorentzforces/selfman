@@ -141,6 +141,11 @@ func (self *AppConfig) applyDefaults() {
 	if len(self.BuildTarget) == 0 {
 		self.BuildTarget = strings.ToLower(self.Name)
 	}
+
+	if self.MiscVars == nil {
+		self.MiscVars = make(map[string]string, 1)
+	}
+	self.MiscVars["VERSION"] = self.Version
 }
 
 // Will apply misc vars to replace appropriate placeholders in these fields:
@@ -149,8 +154,6 @@ func (self *AppConfig) applyDefaults() {
 //   - BuildCmd
 //   - WebUrl
 func (self *AppConfig) applyMiscVarsToPlaceholders() error {
-	self.MiscVars["VERSION"] = self.Version
-
 	var err error
 	self.BuildAction, err = replacePlaceholders(self.BuildAction, self.MiscVars)
 	if err != nil {

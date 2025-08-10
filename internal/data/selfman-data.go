@@ -44,15 +44,13 @@ func SelfmanFromValues(
 			return Selfman{}, errors.Join(newErr, err)
 		}
 
-		if len(app.MiscVars) > 0 {
-			err = app.applyMiscVarsToPlaceholders()
-			if err != nil {
-				newErr := fmt.Errorf(
-					"(app %s) Could not apply placeholder values from misc-vals",
-					app.Name,
-				)
-				return Selfman{}, errors.Join(newErr, err)
-			}
+		err = app.applyMiscVarsToPlaceholders()
+		if err != nil {
+			newErr := fmt.Errorf(
+				"(app %s) Could not apply placeholder values from misc-vals",
+				app.Name,
+			)
+			return Selfman{}, errors.Join(newErr, err)
 		}
 		appConfigMap[app.Name] = app
 	}
