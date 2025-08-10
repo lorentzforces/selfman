@@ -85,12 +85,21 @@ func isGitRevPresent(repoPath string, rev string) bool {
 }
 
 func getSourceVersions(sourcesTopPath string, appName string) []string {
-	entries, err := os.ReadDir(path.Join(sourcesTopPath, appName))
+	appVersionsDirPath := path.Join(sourcesTopPath, appName)
+	entries, err := os.ReadDir(appVersionsDirPath)
 	if err != nil { return nil }
 
 	results := make([]string, 0, len(entries))
 	for _, entry := range entries {
-		if entry.IsDir() {
+		if !entry.IsDir() {
+			continue
+		}
+		// we only consider non-empty dirs just in case a directory got created for an operation
+		// which ended up failing
+		versionDirPath := path.Join(appVersionsDirPath, entry.Name())
+		versionDirContents, err := os.ReadDir(versionDirPath)
+		if err != nil { continue }
+		if len(versionDirContents) > 0 {
 			results = append(results, entry.Name())
 		}
 	}
