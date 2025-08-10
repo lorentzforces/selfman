@@ -35,7 +35,7 @@ func (self DeleteFilesWithPrefix) Execute() (string, error) {
 
 	for _, file := range files {
 		if !strings.HasPrefix(file.Name(), self.FilePrefix) {
-			break
+			continue
 		}
 		err = os.Remove(path.Join(self.DirPath, file.Name()))
 		if err != nil {

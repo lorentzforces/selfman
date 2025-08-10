@@ -68,6 +68,8 @@ func makeItSo(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 		actions = append(actions, versionOp)
 	}
 
+	// TODO: git app which you're still on the same branch of and you want to build whatever is on the tip...
+	// (right now this will not build)
 	if !appStatus.TargetPresent {
 		actions = append(actions, app.GetBuildOp())
 		if !app.KeepBinWithSource {
