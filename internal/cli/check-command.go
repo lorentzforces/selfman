@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/lorentzforces/selfman/internal/data"
 	"github.com/spf13/cobra"
@@ -41,15 +42,21 @@ type checkAppResult struct {
 }
 
 func (self checkAppResult) String() string {
+	versionsString := "None!"
+	if len(self.status.AvailableVersions) > 0 {
+		versionsString = strings.Join(self.status.AvailableVersions, ", ")
+	}
 	return fmt.Sprintf(
 		"📋 %s\n" +
 		"  version: %s\n\n" +
 		"Overall status: %s\n" +
 		"  Source present: %t\n" +
 		"  Target present: %t\n" +
-		"  Bin link present: %t\n",
+		"  Bin link present: %t\n" +
+		"Available versions (locally): %s\n",
 		self.appName, self.status.DesiredVersion, self.status.Label(),
 		self.status.SourcePresent, self.status.TargetPresent, self.status.LinkPresent,
+		versionsString,
 	)
 }
 

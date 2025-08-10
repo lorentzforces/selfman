@@ -84,7 +84,7 @@ func WithWorkingDir(path string) cmdRunOption {
 	}
 }
 
-func (self *cmdRun) Exec() error {
+func (self *cmdRun) Exec() (string, error) {
 	var cmd *exec.Cmd
 	if self.timeoutSeconds == nil {
 		cmd = exec.Command(self.name, self.args...)
@@ -99,13 +99,15 @@ func (self *cmdRun) Exec() error {
 
 	cmd.Dir = self.workingDir
 
+	stdOut := &strings.Builder{}
 	stdErr := &strings.Builder{}
+	cmd.Stdout = stdOut
 	cmd.Stderr = stdErr
 
 	err := cmd.Run()
 	if err != nil {
 		cmdError := errorFrom(err, stdErr.String())
-		return &cmdError
+		return stdOut.String(), &cmdError
 	}
-	return nil
+	return stdOut.String(), nil
 }

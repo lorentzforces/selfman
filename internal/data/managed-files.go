@@ -27,13 +27,13 @@ func (self *AppManagedFiles) AppStatus(appName string) AppStatus {
 
 	if foundApp.Flavor == FlavorGit {
 		statusReport.SourcePresent = isGitRepoPresent(foundApp.SourcePath())
-		if statusReport.SourcePresent {
-			statusReport.VersionPresent =
-				isGitRevPresent(foundApp.SourcePath(), statusReport.DesiredVersion)
-		}
+		// result value will be nil if there's an error
+		// TODO: right now we're just munching the error... log it?
+		statusReport.AvailableVersions, _ = git.GetAllNamedRevs(foundApp.SourcePath())
 	} else {
 		statusReport.SourcePresent = dirExistsNotEmpty(foundApp.SourcePath())
-		statusReport.VersionPresent = statusReport.SourcePresent
+		statusReport.AvailableVersions =
+			getSourceVersions(foundApp.SystemConfig.SourcesPath(), foundApp.Name)
 	}
 
 	statusReport.TargetPresent = executableExists(foundApp.ArtifactPath())
@@ -82,4 +82,17 @@ func linkExists(path string) bool {
 func isGitRevPresent(repoPath string, rev string) bool {
 	present := git.RevExists(repoPath, rev)
 	return present
+}
+
+func getSourceVersions(sourcesTopPath string, appName string) []string {
+	entries, err := os.ReadDir(path.Join(sourcesTopPath, appName))
+	if err != nil { return nil }
+
+	results := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			results = append(results, entry.Name())
+		}
+	}
+	return results
 }

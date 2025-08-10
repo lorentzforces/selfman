@@ -80,7 +80,7 @@ type AppStatus struct {
 	TargetPresent bool
 	LinkPresent bool
 	DesiredVersion string
-	VersionPresent bool
+	AvailableVersions []string
 }
 
 func (self AppStatus) FullyPresent() bool {
@@ -107,6 +107,14 @@ func (self AppStatus) Label() string {
 	case self.IsConfigured: return AppStatusIsConfigured
 	default: return AppStatusNotConfigured
 	}
+}
+
+func (self AppStatus) DesiredVersionPresent() bool {
+	versionPresent := false
+	for _, versionLabel := range self.AvailableVersions {
+		versionPresent = versionPresent || versionLabel == self.DesiredVersion
+	}
+	return versionPresent
 }
 
 // Given an app name, returns a detailed status regarding that app. If the app has a valid

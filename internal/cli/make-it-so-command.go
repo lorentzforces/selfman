@@ -61,6 +61,9 @@ func makeItSo(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 		actions = append(actions, app.GetFetchUpdatesOp())
 	}
 
+	// TODO: consider deleting the default branch after cloning and checking out the desired branch
+	//       IF AND ONLY IF we just cloned
+
 	if versionOp := app.GetSelectVersionOp(); versionOp != nil {
 		actions = append(actions, versionOp)
 	}

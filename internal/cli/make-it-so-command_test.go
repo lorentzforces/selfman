@@ -151,9 +151,10 @@ func TestMakeItSoGitWithPresentVersionStillFetches(t *testing.T) {
 	mockStorage.On("AppStatus", gitApp.Name).Return(data.AppStatus{
 		IsConfigured: true,
 		SourcePresent: true,
-		VersionPresent: true,
 		TargetPresent: false,
 		LinkPresent: false,
+		DesiredVersion: gitApp.Version,
+		AvailableVersions: []string{ gitApp.Version },
 	})
 
 	selfmanData, err := data.SelfmanFromValues(
@@ -206,9 +207,10 @@ func TestMakeItSoWebFetchWithNoChangesDoesNothing(t *testing.T) {
 	mockStorage.On("AppStatus", unchangedApp.Name).Return(data.AppStatus{
 		IsConfigured: true,
 		SourcePresent: true,
-		VersionPresent: true,
 		TargetPresent: true,
 		LinkPresent: true,
+		DesiredVersion: unchangedApp.Version,
+		AvailableVersions: []string{ unchangedApp.Version },
 	})
 
 	selfmanData, err := data.SelfmanFromValues(
@@ -250,7 +252,8 @@ func TestMakeItSoWithSourceAndNothingElseDoesntFetch(t *testing.T) {
 	mockStorage.On("AppStatus", appToInstall.Name).Return(data.AppStatus{
 		IsConfigured: true,
 		SourcePresent: true,
-		VersionPresent: true,
+		DesiredVersion: appToInstall.Version,
+		AvailableVersions: []string{ appToInstall.Version },
 	})
 
 	selfmanData, err := data.SelfmanFromValues(

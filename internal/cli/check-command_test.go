@@ -45,6 +45,7 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 		LinkPresent: false,
 		TargetPresent: true,
 		DesiredVersion: appWithStatus.Version,
+		AvailableVersions: []string{ appWithStatus.Version, "origin/main", "origin/next-version" },
 	})
 
 	selfmanData, err := data.SelfmanFromValues(
@@ -61,4 +62,8 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 	assert.Equal(t, false, result.status.SourcePresent)
 	assert.Equal(t, true, result.status.TargetPresent)
 	assert.Equal(t, false, result.status.LinkPresent)
+	assert.Equal(t,
+		[]string{appWithStatus.Version, "origin/main", "origin/next-version"},
+		result.status.AvailableVersions,
+	)
 }

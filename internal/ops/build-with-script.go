@@ -13,7 +13,11 @@ type BuildWithScript struct {
 }
 
 func (self BuildWithScript) Execute() (string, error) {
-	err := run.NewCmd(self.ScriptShell, run.WithArgs("-c", self.ScriptCmd), run.WithWorkingDir(self.SourcePath)).Exec()
+	_, err := run.NewCmd(
+		self.ScriptShell,
+		run.WithArgs("-c", self.ScriptCmd),
+		run.WithWorkingDir(self.SourcePath),
+	).Exec()
 	if err != nil {
 		return "", fmt.Errorf("Error while running build script: %w", err)
 	}
