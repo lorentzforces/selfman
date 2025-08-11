@@ -79,6 +79,10 @@ func TestRemoveCommandProducesSaneOperations(t *testing.T) {
 			TypeOfDeletion: "Delete binary symlink",
 			Path: appToRemove.BinaryPath(),
 		},
+		ops.DeleteFile{
+			TypeOfDeletion: "Delete library link",
+			Path: appToRemove.LibPath(),
+		},
 		ops.DeleteFilesWithPrefix{
 			TypeOfDeletion: "Delete built artifacts",
 			DirPath: systemConfig.ArtifactsPath(),

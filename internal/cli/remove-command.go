@@ -55,6 +55,10 @@ func removeApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 			TypeOfDeletion: "Delete binary symlink",
 			Path: app.BinaryPath(),
 		},
+		ops.DeleteFile{
+			TypeOfDeletion: "Delete library link",
+			Path: app.LibPath(),
+		},
 		ops.DeleteFilesWithPrefix{
 			TypeOfDeletion: "Delete built artifacts",
 			DirPath: app.SystemConfig.ArtifactsPath(),
