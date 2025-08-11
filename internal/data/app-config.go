@@ -26,8 +26,6 @@ const (
 
 // TODO: do we want to continue using the same struct for serialization and runtime usage?
 // TODO: make some form of config file with explainers (potentially accessible via command)
-// TODO(lombok): support some kind of "library" or "dir" target as well as the binary target, which
-//              puts the full directory tree somewhere well-known
 type AppConfig struct {
 	SystemConfig *SystemConfig `yaml:"-"` // ignored in yaml
 	Name string
