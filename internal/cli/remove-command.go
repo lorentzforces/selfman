@@ -16,6 +16,7 @@ func CreateRemoveCmd() SelfmanCommand {
 		cobraCmd: &cobra.Command{
 			Use: "remove [flags] app-name",
 			Short: "Remove an application's files managed by selfman",
+			Aliases: []string{ "rm" },
 		},
 		runFunc: runRemoveCmd,
 	}
