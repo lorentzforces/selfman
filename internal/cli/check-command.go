@@ -38,6 +38,7 @@ func runCheckCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 
 type checkAppResult struct {
 	appName string
+	appIsLib bool
 	status data.AppStatus
 }
 
@@ -46,22 +47,28 @@ func (self checkAppResult) String() string {
 	if len(self.status.AvailableVersions) > 0 {
 		versionsString = strings.Join(self.status.AvailableVersions, ", ")
 	}
-	return fmt.Sprintf(
+	resultString := fmt.Sprintf(
 		"📋 %s\n" +
 		"  version: %s\n\n" +
 		"Overall status: %s\n" +
 		"  Source present: %t\n" +
 		"  Target present: %t\n" +
-		"  Bin link present: %t\n" +
-		"Available versions (locally): %s\n",
+		"  Bin link present: %t\n",
 		self.appName, self.status.DesiredVersion, self.status.Label(),
 		self.status.SourcePresent, self.status.TargetPresent, self.status.LinkPresent,
-		versionsString,
 	)
+
+	if self.appIsLib {
+		resultString += fmt.Sprintf("  Lib link present: %t\n", self.status.LibLinkPresent)
+	}
+
+	resultString += fmt.Sprintf("Available versions (locally): %s\n", versionsString)
+
+	return resultString
 }
 
 func checkApp(name string, selfmanData data.Selfman) (checkAppResult, error) {
-	_, status := selfmanData.AppStatus(name)
+	app, status := selfmanData.AppStatus(name)
 	if !status.IsConfigured {
 		return checkAppResult{}, fmt.Errorf(
 			"No configuration for an app named %s was found",
@@ -71,6 +78,7 @@ func checkApp(name string, selfmanData data.Selfman) (checkAppResult, error) {
 
 	return checkAppResult{
 		appName: name,
+		appIsLib: app.LinkSourceAsLib,
 		status: status,
 	}, nil
 }

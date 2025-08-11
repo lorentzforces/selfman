@@ -77,6 +77,7 @@ type AppStatus struct {
 	SourcePresent bool
 	TargetPresent bool
 	LinkPresent bool
+	LibLinkPresent bool
 	DesiredVersion string
 	AvailableVersions []string
 }
@@ -131,5 +132,6 @@ func (self Selfman) VerifyAllDirectoriesExist() {
 	run.VerifyDirExists(*self.SystemConfig.DataDir)
 	run.VerifyDirExists(*self.SystemConfig.AppConfigDir)
 	run.VerifyDirExists(*self.SystemConfig.BinaryDir)
+	run.VerifyDirExists(*self.SystemConfig.LibDir)
 	run.VerifyDirExists(self.SystemConfig.ArtifactsPath())
 }

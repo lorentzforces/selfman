@@ -286,7 +286,7 @@ func TestMakeItSoWithSourceAndNothingElseDoesntFetch(t *testing.T) {
 	assert.Equal(t, expectedActions, actions)
 }
 
-func TestMakeItSoKeepingbinInPlace(t *testing.T) {
+func TestMakeItSoKeepingBinInPlace(t *testing.T) {
 	systemConfig := data.DefaultTestConfig()
 
 	inPlaceApp := data.AppConfig{
@@ -331,6 +331,59 @@ func TestMakeItSoKeepingbinInPlace(t *testing.T) {
 		ops.LinkArtifact{
 			SourcePath: path.Join(inPlaceApp.SourcePath(), inPlaceApp.Name),
 			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, inPlaceApp.Name),
+		},
+	}
+	assert.Equal(t, expectedActions, actions)
+}
+
+func TestMakeItSoLinksLibrary(t *testing.T) {
+	systemConfig := data.DefaultTestConfig()
+
+	libApp := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "lib-app",
+		Flavor: data.FlavorWebFetch,
+		Version: "1.0.0",
+		WebUrl: run.StrPtr("https://example.com/%VERSION%/app.zip"),
+		BuildAction: data.ActionNone,
+		LinkSourceAsLib: true,
+	}
+
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", libApp.Name).Return(data.AppStatus{
+		IsConfigured: true,
+	})
+
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{ libApp },
+		&mockStorage,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	actions, err := makeItSo(libApp.Name, selfmanData)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	expectedActions := []ops.Operation{
+		ops.FetchFromWeb{
+			SourceUrl: *libApp.WebUrl,
+			Version: libApp.Version,
+			DestinationDir: libApp.SourcePath(),
+		},
+		ops.NoBuildOp,
+		ops.MoveTarget{
+			SourcePath: path.Join(libApp.SourcePath(), libApp.Name),
+			DestinationPath: libApp.ArtifactPath(),
+		},
+		ops.LinkArtifact{
+			SourcePath: libApp.ArtifactPath(),
+			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, libApp.Name),
+		},
+		ops.LinkLibrary{
+			SourcePath: libApp.SourcePath(),
+			DestinationPath: path.Join(*selfmanData.SystemConfig.LibDir, libApp.Name),
 		},
 	}
 	assert.Equal(t, expectedActions, actions)

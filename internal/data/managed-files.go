@@ -38,6 +38,7 @@ func (self *AppManagedFiles) AppStatus(appName string) AppStatus {
 
 	statusReport.TargetPresent = executableExists(foundApp.ArtifactPath())
 	statusReport.LinkPresent = linkExists(foundApp.BinaryPath())
+	statusReport.LibLinkPresent = linkExists(foundApp.LibPath())
 
 	return statusReport
 }

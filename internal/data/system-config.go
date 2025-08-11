@@ -16,6 +16,7 @@ func DefaultTestConfig() *SystemConfig {
 		AppConfigDir: run.StrPtr("/tmp/selfman-test/apps"),
 		DataDir: run.StrPtr("/tmp/selfman-test/data"),
 		BinaryDir: run.StrPtr("/tmp/selfman-test/bin"),
+		LibDir: run.StrPtr("/tmp/selfman-test/lib"),
 		ScriptShell: run.StrPtr("/bin/sh"),
 	}
 }
@@ -108,6 +109,7 @@ func coalesceConfigs(a, b SystemConfig) SystemConfig {
 	result.AppConfigDir = run.Coalesce(b.AppConfigDir, a.AppConfigDir)
 	result.DataDir = run.Coalesce(b.DataDir, a.DataDir)
 	result.BinaryDir = run.Coalesce(b.BinaryDir, a.BinaryDir)
+	result.LibDir = run.Coalesce(b.LibDir, a.LibDir)
 	result.ScriptShell = run.Coalesce(b.ScriptShell, a.ScriptShell)
 	return result
 }
@@ -119,6 +121,8 @@ type SystemConfig struct {
 	DataDir *string `yaml:"data-dir,omitempty"`
 	// The directory in which to place binary files
 	BinaryDir *string `yaml:"binary-dir,omitempty"`
+	// The directory in which to link library directories
+	LibDir *string `yaml:"lib-dir,omitempty"`
 	// The shell to be used to invoke build scripts. Defaults to "/bin/sh", will be invoked with
 	// the "-c" option.
 	ScriptShell *string `yaml:"script-shell,omitempty"`
@@ -128,6 +132,7 @@ func (self *SystemConfig) expandPaths() {
 	*self.AppConfigDir = os.ExpandEnv(*self.AppConfigDir)
 	*self.DataDir = os.ExpandEnv(*self.DataDir)
 	*self.BinaryDir = os.ExpandEnv(*self.BinaryDir)
+	*self.LibDir = os.ExpandEnv(*self.LibDir)
 }
 
 func (self *SystemConfig) SourcesPath() string {
@@ -147,6 +152,7 @@ func defaultConfig() SystemConfig {
 		AppConfigDir: run.StrPtr(path.Join(resolveXdgConfigDir(), "selfman", "apps")),
 		DataDir: run.StrPtr(path.Join(resolveXdgDataDir(), "selfman")),
 		BinaryDir: run.StrPtr(resolveXdgBinDir()),
+		LibDir: run.StrPtr(resolveUserLibDir()),
 		ScriptShell: run.StrPtr("/bin/sh"),
 	}
 }

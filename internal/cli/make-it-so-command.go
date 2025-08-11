@@ -91,5 +91,15 @@ func makeItSo(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 		},
 	)
 
+	if app.LinkSourceAsLib {
+		actions = append(
+			actions,
+			ops.LinkLibrary{
+				SourcePath: app.SourcePath(),
+				DestinationPath: app.LibPath(),
+			},
+		)
+	}
+
 	return actions, nil
 }

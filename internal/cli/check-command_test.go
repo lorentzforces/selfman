@@ -67,3 +67,40 @@ func TestCheckShowsDetailedStatusInformation(t *testing.T) {
 		result.status.AvailableVersions,
 	)
 }
+
+func TestCheckShowsLibLinkStatusIfAppIsLib(t *testing.T) {
+	systemConfig := data.DefaultTestConfig()
+
+	libApp := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "lib-app",
+		Flavor: "web-fetch",
+		Version: "1.0.0",
+		WebUrl: run.StrPtr("https://example.com/%VERSION%/app.zip"),
+		BuildAction: "none",
+		LinkSourceAsLib: true,
+	}
+
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", libApp.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: true,
+		LinkPresent: true,
+		TargetPresent: true,
+		LibLinkPresent: true,
+		DesiredVersion: libApp.Version,
+		AvailableVersions: []string{},
+	})
+
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{ libApp },
+		&mockStorage,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	result, err := checkApp(libApp.Name, selfmanData)
+
+	assert.Equal(t, true, result.status.LibLinkPresent)
+}

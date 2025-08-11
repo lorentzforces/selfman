@@ -39,6 +39,7 @@ type AppConfig struct {
 	BuildCmd *string `yaml:"build-cmd,omitempty"`
 	WebUrl *string `yaml:"web-url,omitempty"`
 	KeepBinWithSource bool `yaml:"keep-bin-with-source"`
+	LinkSourceAsLib bool `yaml:"link-source-as-lib"`
 	MiscVars map[string]string `yaml:"misc-vars"`
 }
 
@@ -66,6 +67,10 @@ func (self *AppConfig) BuildTargetPath() string {
 
 func (self *AppConfig) BinaryPath() string {
 	return path.Join(*self.SystemConfig.BinaryDir, self.Name)
+}
+
+func (self *AppConfig) LibPath() string {
+	return path.Join(*self.SystemConfig.LibDir, self.Name)
 }
 
 func (self *AppConfig) GetObtainSourceOp() ops.Operation {

@@ -1,3 +1,4 @@
 app-config-dir: '$PWD/dev-files' # this is horrifically hacky and you should never do this 👀
 data-dir: '/tmp/selfman-manual-testing'
 binary-dir: '/tmp/selfman-manual-testing/local-bin'
+lib-dir: '/tmp/selfman-manual-testing/local-lib'

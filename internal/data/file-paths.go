@@ -35,3 +35,9 @@ func resolveXdgBinDir() string {
 	run.AssertNoErr(err)
 	return path.Join(usr.HomeDir, ".local", "bin")
 }
+
+func resolveUserLibDir() string {
+	usr, err := user.Current()
+	run.AssertNoErr(err)
+	return path.Join(usr.HomeDir, ".local", "lib")
+}
