@@ -99,6 +99,7 @@ const (
 	AppStatusNotConfigured = "unknown app - not configured"
 )
 
+// TODO: this is a little inconsistent with web-fetch apps that don't build anything
 func (self AppStatus) Label() string {
 	switch {
 	case self.FullyPresent(): return AppStatusLinkPresent

@@ -20,7 +20,8 @@ func (self FetchFromWeb) Execute() (string, error) {
 	tmpFile, err := run.GetFileFromUrl(fullUrl)
 	if err != nil { return "", fmt.Errorf("Fetch from web failed: %w", err) }
 
-	err = run.VerifyDirExists(self.DestinationDir)
+	// we add a hidden dummy file so the directory isn't empty if we move the only file out of it
+	err = run.VerifyDirExistsWithDummyFile(self.DestinationDir)
 	if err != nil {
 		return "", fmt.Errorf("Error creating destination dir (%s): %w", self.DestinationDir, err)
 	}

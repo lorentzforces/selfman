@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/lorentzforces/fresh-err/fresherr"
@@ -61,8 +62,15 @@ func StrPtr(str string) *string {
 
 var ErrNotImplemented = fmt.Errorf("Not yet implemented")
 
-func VerifyDirExists(path string) error {
-	return os.MkdirAll(path, os.ModePerm)
+func VerifyDirExists(dirPath string) error {
+	return os.MkdirAll(dirPath, os.ModePerm)
+}
+
+func VerifyDirExistsWithDummyFile(dirPath string) error {
+	err := VerifyDirExists(dirPath)
+	if err != nil { return err }
+	_, err = os.Create(path.Join(dirPath, ".selfman-was-here"))
+	return err
 }
 
 func GetStrictDecoder(source io.Reader) *yaml.Decoder {

@@ -1,12 +1,10 @@
 package data
 
 import (
-	"io/fs"
 	"os"
 	"path"
 
 	"github.com/lorentzforces/selfman/internal/git"
-	"golang.org/x/sys/unix"
 )
 
 type ManagedFiles interface {
@@ -36,7 +34,7 @@ func (self *AppManagedFiles) AppStatus(appName string) AppStatus {
 			getSourceVersions(foundApp.SystemConfig.SourcesPath(), foundApp.Name)
 	}
 
-	statusReport.TargetPresent = executableExists(foundApp.ArtifactPath())
+	statusReport.TargetPresent = fileExists(foundApp.ArtifactPath())
 	statusReport.LinkPresent = linkExists(foundApp.BinaryPath())
 	statusReport.LibLinkPresent = linkExists(foundApp.LibPath())
 
@@ -57,17 +55,9 @@ func dirExistsNotEmpty(path string) bool {
 	return len(dirContents) > 0
 }
 
-func executableExists(path string) bool {
-	stat, err := os.Stat(path)
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
 	if err != nil { return false }
-	// rely on the OS mode mask to enforce sanity
-	const anyExecBitmask fs.FileMode = 0111
-	if stat.Mode() & anyExecBitmask == 0 {
-		return false
-	}
-	if unix.Access(path, unix.X_OK) != nil {
-		return false
-	}
 	return true
 }
 
