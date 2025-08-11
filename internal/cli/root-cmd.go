@@ -6,6 +6,7 @@ import (
 
 const (
 	globalOptionDryRun = "dry-run"
+	globalOptionVerbose = "verbose"
 )
 
 func CreateRootCmd() *cobra.Command {
@@ -22,6 +23,12 @@ func CreateRootCmd() *cobra.Command {
 		false,
 		"For commands which would make changes, print operations that would be taken instead of " +
 			"executing them",
+	)
+	rootCmd.PersistentFlags().BoolP(
+		globalOptionVerbose,
+		"v",
+		false,
+		"Enable display of additional information when executing commands",
 	)
 
 	addSelfmanCommands(

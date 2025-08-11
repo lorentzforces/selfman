@@ -4,10 +4,7 @@ Need to update git app handling to rebuild if/when you've gotten fresh commits o
 
 Relatedly, the check command needs some work:
 - git apps show available branch versions, but not available artifact versions. Both should probably be shown.
-- web-fetch apps which are only a single file (like lombok) will always show as an inconsistent state because no files are left in the source directory when the target is moved
 - If an app has a lot of versions available, the formatting will probably be crap. This is probably puntable until I have an app which this actually affects, but something like a columnar display (3 columns max or something) may be good.
-
-Since selfman is now basically usable for all my initial use cases, I should add a verbose option to CLI commands and make the default less-verbose.
 
 The remove command should have a `--remove-source` option to also delete the source directory for an app.
 

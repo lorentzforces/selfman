@@ -26,10 +26,14 @@ type OpDescription struct {
 	ContextLines []string
 }
 
-func (self OpDescription) String() string {
+func (self OpDescription) LongDisplay() string {
 	var buf strings.Builder
 	self.buildString(&buf)
 	return buf.String()
+}
+
+func (self OpDescription) ShortDisplay() string {
+	return self.TopLine
 }
 
 const opDescriptionIndent string = "    "

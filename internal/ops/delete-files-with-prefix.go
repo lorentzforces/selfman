@@ -52,7 +52,7 @@ func (self DeleteFilesWithPrefix) Execute() (string, error) {
 
 func (self DeleteFilesWithPrefix) Describe() OpDescription {
 	return OpDescription{
-		TopLine: fmt.Sprintf("File deletion for prefix: %s", self.TypeOfDeletion),
+		TopLine: fmt.Sprintf("%s: File deletion for prefix", self.TypeOfDeletion),
 		ContextLines: []string{
 			fmt.Sprintf("dir path: %s", self.DirPath),
 			fmt.Sprintf("file prefix for bulk delete: %s", self.FilePrefix),

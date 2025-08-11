@@ -33,7 +33,7 @@ func (self DeleteDir) Execute() (string, error) {
 
 func (self DeleteDir) Describe() OpDescription {
 	return OpDescription{
-		TopLine: fmt.Sprintf("Dir deletion: %s", self.TypeOfDeletion),
+		TopLine: fmt.Sprintf("%s, Dir deletion", self.TypeOfDeletion),
 		ContextLines: []string{
 			fmt.Sprintf("path: %s", self.Path),
 		},

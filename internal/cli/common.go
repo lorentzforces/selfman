@@ -35,24 +35,29 @@ func (self *SelfmanCommand) RunSelfmanCommand(cmd *cobra.Command, args []string)
 
 	dryRun, err := cmd.Flags().GetBool(globalOptionDryRun)
 	run.AssertNoErr(err)
+	verbose, err := cmd.Flags().GetBool(globalOptionVerbose)
+	run.AssertNoErr(err)
 
 	if cmdResult.textOutput != nil {
 		fmt.Println(cmdResult.textOutput)
 	}
 
 	if dryRun {
-		dryRunOperations(cmdResult.operations)
+		dryRunOperations(cmdResult.operations, verbose)
 		return nil
 	} else {
-		return executeOperations(cmdResult.operations)
+		return executeOperations(cmdResult.operations, verbose)
 	}
 }
 
 // Since the messages printed herein are progress updates, print to stderr
-func executeOperations(actions []ops.Operation) error {
-	// TODO: make this the verbose version, add non-verbose that only prints basic summary
+func executeOperations(actions []ops.Operation, verbose bool) error {
 	for _, action := range actions {
-		fmt.Fprintln(os.Stderr, action.Describe())
+		if verbose {
+			fmt.Fprintln(os.Stderr, action.Describe().LongDisplay())
+		} else {
+			fmt.Fprintln(os.Stderr, action.Describe().ShortDisplay())
+		}
 		msg, err := action.Execute()
 		if err != nil { return err }
 
@@ -67,9 +72,15 @@ func executeOperations(actions []ops.Operation) error {
 }
 
 // Since this is asked for as the main output, print to stdout
-func dryRunOperations(actions []ops.Operation) {
+func dryRunOperations(actions []ops.Operation, verbose bool) {
 	fmt.Printf("Would perform the following operations:\n\n")
-	for _, action := range actions {
-		fmt.Println(action.Describe())
+	if verbose {
+		for _, action := range actions {
+			fmt.Println(action.Describe().LongDisplay())
+		}
+	} else {
+		for _, action := range actions {
+			fmt.Println(action.Describe().ShortDisplay())
+		}
 	}
 }

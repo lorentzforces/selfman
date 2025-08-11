@@ -13,7 +13,7 @@ func (self NoOp) Execute() (string, error) {
 
 func (self NoOp) Describe() OpDescription {
 	return OpDescription {
-		TopLine: fmt.Sprintf("No-op operation: %s", self.TypeOfNoOp),
+		TopLine: fmt.Sprintf("%s: No-op operation", self.TypeOfNoOp),
 		ContextLines: []string{
 			self.Description,
 		},
