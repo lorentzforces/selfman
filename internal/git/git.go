@@ -7,6 +7,8 @@ import (
 	"github.com/lorentzforces/selfman/internal/run"
 )
 
+// TODO(commit-changed): look up current commit pointed to by HEAD
+
 func ExecExists() bool {
 	_, err := exec.LookPath("git")
 	return err == nil

@@ -50,6 +50,9 @@ func (self *SelfmanCommand) RunSelfmanCommand(cmd *cobra.Command, args []string)
 	}
 }
 
+// TODO(commit-changed): handle display of meta operations (probably will require pulling out
+// operation-printing logic, maybe indentation?)
+
 // Since the messages printed herein are progress updates, print to stderr
 func executeOperations(actions []ops.Operation, verbose bool) error {
 	for _, action := range actions {

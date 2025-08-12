@@ -21,6 +21,14 @@ type Operation interface {
 	Describe() OpDescription
 }
 
+// A meta-operation encloses other operations.
+// These control or wrap execution of other operations, e.g. to conditionally execute them based
+// on information only available AFTER a command has generated its list of operations.
+type MetaOperation interface {
+	// Retrieve any inner operations.
+	InnerOps() []Operation
+}
+
 type OpDescription struct {
 	TopLine string
 	ContextLines []string
