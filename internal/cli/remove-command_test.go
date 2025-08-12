@@ -35,7 +35,7 @@ func TestRemoveCommandErrorsWithNonPresentApp(t *testing.T) {
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 
-	_, err = removeApp(notPresentApp.Name, selfmanData)
+	_, err = removeApp(notPresentApp.Name, false, selfmanData)
 	assert.Error(
 		t, err,
 		"An error must be thrown if the user attempts to remove an application which is configured " +
@@ -51,7 +51,7 @@ func TestRemoveCommandProducesSaneOperations(t *testing.T) {
 		Name: "git-repo-app",
 		Flavor: "git",
 		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
-		BuildAction: "none",
+		BuildAction: data.ActionNone,
 		Version: "main",
 	}
 
@@ -71,7 +71,7 @@ func TestRemoveCommandProducesSaneOperations(t *testing.T) {
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 
-	actions, err := removeApp(appToRemove.Name, selfmanData)
+	actions, err := removeApp(appToRemove.Name, false, selfmanData)
 	assert.NoError(t, err)
 	run.BailIfFailed(t)
 	expectedActions := []ops.Operation{
@@ -87,6 +87,60 @@ func TestRemoveCommandProducesSaneOperations(t *testing.T) {
 			TypeOfDeletion: "Delete built artifacts",
 			DirPath: systemConfig.ArtifactsPath(),
 			FilePrefix: appToRemove.Name + "---",
+		},
+	}
+	assert.Equal(t, expectedActions, actions)
+}
+
+func TestRemoveCommandRemovesSourceWhenAsked(t *testing.T) {
+	systemConfig := data.DefaultTestConfig()
+
+	appToRemove := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "git-repo-app",
+		Flavor: "git",
+		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
+		BuildAction: data.ActionNone,
+		Version: "main",
+	}
+
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", appToRemove.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: true,
+		TargetPresent: true,
+		LinkPresent: true,
+	})
+
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{appToRemove},
+		&mockStorage,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	actions, err := removeApp(appToRemove.Name, true, selfmanData)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	expectedActions := []ops.Operation{
+		ops.DeleteFile{
+			TypeOfDeletion: "Delete binary symlink",
+			Path: appToRemove.BinaryPath(),
+		},
+		ops.DeleteFile{
+			TypeOfDeletion: "Delete library link",
+			Path: appToRemove.LibPath(),
+		},
+		ops.DeleteFilesWithPrefix{
+			TypeOfDeletion: "Delete built artifacts",
+			DirPath: systemConfig.ArtifactsPath(),
+			FilePrefix: appToRemove.Name + "---",
+		},
+		ops.DeleteDir{
+			TypeOfDeletion: "Delete source directory",
+			Path: appToRemove.SourcePath(),
 		},
 	}
 	assert.Equal(t, expectedActions, actions)

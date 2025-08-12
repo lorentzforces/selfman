@@ -33,10 +33,12 @@ func (self DeleteFilesWithPrefix) Execute() (string, error) {
 
 	deleteErrors := make([]error, 0)
 
+	matchedFiles := 0
 	for _, file := range files {
 		if !strings.HasPrefix(file.Name(), self.FilePrefix) {
 			continue
 		}
+		matchedFiles++
 		err = os.Remove(path.Join(self.DirPath, file.Name()))
 		if err != nil {
 			deleteErrors = append(deleteErrors, err)
@@ -45,6 +47,10 @@ func (self DeleteFilesWithPrefix) Execute() (string, error) {
 
 	if len(deleteErrors) > 0 {
 		return "Deleted multiple files with errors", errors.Join(deleteErrors...)
+	}
+
+	if matchedFiles == 0 {
+		return "Deleted no files (already gone)", nil
 	}
 
 	return "Deleted multiple files", nil

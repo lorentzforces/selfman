@@ -5,14 +5,14 @@ import (
 
 	"github.com/lorentzforces/selfman/internal/data"
 	"github.com/lorentzforces/selfman/internal/ops"
+	"github.com/lorentzforces/selfman/internal/run"
 	"github.com/spf13/cobra"
 )
 
-// TODO: implement a full removal option that also removes source files etc
-// TODO: when library support is added, manage removing the library part as well
+const removeCmdOptionRemoveSource = "remove-source"
 
 func CreateRemoveCmd() SelfmanCommand {
-	return SelfmanCommand{
+	selfmanCmd := SelfmanCommand{
 		cobraCmd: &cobra.Command{
 			Use: "remove [flags] app-name",
 			Short: "Remove an application's files managed by selfman",
@@ -20,6 +20,14 @@ func CreateRemoveCmd() SelfmanCommand {
 		},
 		runFunc: runRemoveCmd,
 	}
+
+	selfmanCmd.cobraCmd.Flags().Bool(
+		removeCmdOptionRemoveSource,
+		false,
+		"Fully remove application source in addition to artifacts, links, & products",
+	)
+
+	return selfmanCmd
 }
 
 func runRemoveCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
@@ -31,7 +39,9 @@ func runRemoveCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 		return nil,
 			fmt.Errorf("Remove command expects an application name, but one was not provided")
 	}
-	ops, err := removeApp(args[0], selfmanData)
+	removeSource, err := cmd.Flags().GetBool(removeCmdOptionRemoveSource)
+	run.AssertNoErr(err)
+	ops, err := removeApp(args[0], removeSource, selfmanData)
 	if err != nil { return nil, err }
 
 	return &SelfmanResult{
@@ -40,7 +50,7 @@ func runRemoveCmd(cmd *cobra.Command, args []string) (*SelfmanResult, error) {
 	}, nil
 }
 
-func removeApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
+func removeApp(name string, removeSource bool, selfmanData data.Selfman) ([]ops.Operation, error) {
 	app, appStatus := selfmanData.AppStatus(name)
 	if !appStatus.IsConfigured {
 		return nil, fmt.Errorf("Could not find a configured application with name \"%s\"", name)
@@ -64,6 +74,13 @@ func removeApp(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 			DirPath: app.SystemConfig.ArtifactsPath(),
 			FilePrefix: app.Name + "---",
 		},
+	}
+
+	if removeSource {
+		actions = append(actions, ops.DeleteDir{
+			TypeOfDeletion: "Delete source directory",
+			Path: app.SourcePath(),
+		})
 	}
 
 	return actions, nil

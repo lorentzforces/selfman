@@ -6,9 +6,7 @@ Relatedly, the check command needs some work:
 - git apps show available branch versions, but not available artifact versions. Both should probably be shown.
 - If an app has a lot of versions available, the formatting will probably be crap. This is probably puntable until I have an app which this actually affects, but something like a columnar display (3 columns max or something) may be good.
 
-The remove command should have a `--remove-source` option to also delete the source directory for an app.
-
-There should be a cleanup command which allows the user to check and remove outdated/unused versions.
+There should be a cleanup command which allows the user to check and remove outdated/unused versions. (and potentially some way of nuking absolutely everything related to an app)
 
 Documentation needs to be updated quite badly (at this point even for my own sake), especially:
 - app flavors and what configuration is valid for each flavor

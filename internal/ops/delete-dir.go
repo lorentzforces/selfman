@@ -23,7 +23,7 @@ func (self DeleteDir) Execute() (string, error) {
 		return "", fmt.Errorf("Went to delete dir, but found file: %s", self.Path)
 	}
 
-	err = os.Remove(self.Path)
+	err = os.RemoveAll(self.Path)
 	if err != nil {
 		return "", fmt.Errorf("Delete dir failed: %w", err)
 	}
@@ -33,7 +33,7 @@ func (self DeleteDir) Execute() (string, error) {
 
 func (self DeleteDir) Describe() OpDescription {
 	return OpDescription{
-		TopLine: fmt.Sprintf("%s, Dir deletion", self.TypeOfDeletion),
+		TopLine: fmt.Sprintf("%s: Dir deletion", self.TypeOfDeletion),
 		ContextLines: []string{
 			fmt.Sprintf("path: %s", self.Path),
 		},
