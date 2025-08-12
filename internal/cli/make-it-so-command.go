@@ -68,8 +68,10 @@ func makeItSo(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 		actions = append(actions, versionOp)
 	}
 
-	// TODO: git app which you're still on the same branch of and you want to build whatever is on the tip...
-	// (right now this will not build)
+	moveBinAction := ops.MoveTarget{
+		SourcePath: buildTargetPath,
+		DestinationPath: artifactPath,
+	}
 	if !appStatus.TargetPresent {
 		actions = append(actions, app.GetBuildOp())
 		if !app.KeepBinWithSource {
@@ -81,6 +83,21 @@ func makeItSo(name string, selfmanData data.Selfman) ([]ops.Operation, error) {
 				},
 			)
 		}
+	} else if app.Flavor == data.FlavorGit && appStatus.TargetPresent {
+		commitChangeOp := ops.MetaOpCommitChanged{
+			RepoPath: app.SourcePath(),
+			OrigCommitHash: appStatus.CurrentCommitHash,
+			IfChangedOps: []ops.Operation{ app.GetBuildOp() },
+		}
+
+		if !app.KeepBinWithSource {
+			commitChangeOp.IfChangedOps = append(
+				commitChangeOp.IfChangedOps,
+				moveBinAction,
+			)
+		}
+
+		actions = append(actions, commitChangeOp)
 	}
 
 	actions = append(

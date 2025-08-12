@@ -388,3 +388,70 @@ func TestMakeItSoLinksLibrary(t *testing.T) {
 	}
 	assert.Equal(t, expectedActions, actions)
 }
+
+func TestMakeItSoGitWithTargetPresentChecksCommit(t *testing.T) {
+	systemConfig := data.DefaultTestConfig()
+
+	gitApp := data.AppConfig{
+		SystemConfig: systemConfig,
+		Name: "git-app-with-target-present",
+		Flavor: data.FlavorGit,
+		Version: "origin/main",
+		RemoteRepo: run.StrPtr("git@github.com:github/gitignore.git"),
+		BuildAction: data.BuildActionScript,
+		BuildCmd: run.StrPtr("make build"),
+	}
+
+	mockStorage := mocks.MockManagedFiles{}
+	mockStorage.On("AppStatus", gitApp.Name).Return(data.AppStatus{
+		IsConfigured: true,
+		SourcePresent: true,
+		TargetPresent: true,
+		LinkPresent: true,
+		DesiredVersion: gitApp.Version,
+		AvailableVersions: []string{ gitApp.Version },
+		CurrentCommitHash: "aaabbbccc",
+	})
+
+	selfmanData, err := data.SelfmanFromValues(
+		systemConfig,
+		[]data.AppConfig{ gitApp },
+		&mockStorage,
+	)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	actions, err := makeItSo(gitApp.Name, selfmanData)
+	assert.NoError(t, err)
+	run.BailIfFailed(t)
+
+	expectedActions := []ops.Operation{
+		ops.GitFetch{
+			RepoPath: gitApp.SourcePath(),
+		},
+		ops.GitCheckoutRef{
+			RepoPath: gitApp.SourcePath(),
+			RefName: gitApp.Version,
+		},
+		ops.MetaOpCommitChanged{
+			RepoPath: gitApp.SourcePath(),
+			OrigCommitHash: "aaabbbccc",
+			IfChangedOps: []ops.Operation{
+				ops.BuildWithScript{
+					SourcePath: gitApp.SourcePath(),
+					ScriptShell: "/bin/sh",
+					ScriptCmd: *gitApp.BuildCmd,
+				},
+				ops.MoveTarget{
+					SourcePath: path.Join(gitApp.SourcePath(), gitApp.Name),
+					DestinationPath: gitApp.ArtifactPath(),
+				},
+			},
+		},
+		ops.LinkArtifact{
+			SourcePath: gitApp.ArtifactPath(),
+			DestinationPath: path.Join(*selfmanData.SystemConfig.BinaryDir, gitApp.Name),
+		},
+	}
+	assert.Equal(t, expectedActions, actions)
+}

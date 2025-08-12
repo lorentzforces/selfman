@@ -28,6 +28,8 @@ func (self *AppManagedFiles) AppStatus(appName string) AppStatus {
 		// result value will be nil if there's an error
 		// TODO: right now we're just munching the error... log it?
 		statusReport.AvailableVersions, _ = git.GetAllNamedRevs(foundApp.SourcePath())
+		// TODO: verify that the output of this command is empty if there's an error
+		statusReport.CurrentCommitHash, _ = git.CurrentHeadCommit(foundApp.SourcePath())
 	} else {
 		statusReport.SourcePresent = dirExistsNotEmpty(foundApp.SourcePath())
 		statusReport.AvailableVersions =

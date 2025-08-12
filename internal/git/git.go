@@ -78,9 +78,9 @@ func RevExists(repoPath string, revName string) bool {
 	_, err := run.NewCmd(
 		"git",
 		run.WithArgs(
-			"rev-parse",
-			"-c",
+			"-C",
 			repoPath,
+			"rev-parse",
 			"--verify",
 			"--end-of-options",
 			revName + "^{commit}",
@@ -88,4 +88,12 @@ func RevExists(repoPath string, revName string) bool {
 	).Exec()
 
 	return err == nil
+}
+
+func CurrentHeadCommit(repoPath string) (string, error) {
+	output, err := run.NewCmd(
+		"git",
+		run.WithArgs("-C", repoPath, "rev-parse", "--verify", "--end-of-options", "HEAD"),
+	).Exec()
+	return strings.TrimSpace(output), err
 }

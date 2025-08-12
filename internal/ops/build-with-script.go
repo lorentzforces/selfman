@@ -27,9 +27,9 @@ func (self BuildWithScript) Execute() (string, error) {
 
 func (self BuildWithScript) Describe() OpDescription {
 	topLine := "Build app with script"
-	sourcePath := fmt.Sprintf("Source path: %s", self.SourcePath)
-	scriptShell := fmt.Sprintf("Shell: %s -c", self.ScriptShell)
-	scriptCmd := fmt.Sprintf("Script command: %s", self.ScriptCmd)
+	sourcePath := fmt.Sprintf("source path: %s", self.SourcePath)
+	scriptShell := fmt.Sprintf("shell: %s -c", self.ScriptShell)
+	scriptCmd := fmt.Sprintf("script command: %s", self.ScriptCmd)
 
 	return OpDescription{
 		TopLine: topLine,

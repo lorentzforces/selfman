@@ -21,8 +21,8 @@ func (self GitCheckoutRef) Execute() (string, error) {
 
 func (self GitCheckoutRef) Describe() OpDescription {
 	topLine := "Git checkout ref"
-	repoPath := fmt.Sprintf("Local repository path: %s", self.RepoPath)
-	refName := fmt.Sprintf("Ref name: %s", self.RefName)
+	repoPath := fmt.Sprintf("local repository path: %s", self.RepoPath)
+	refName := fmt.Sprintf("ref name: %s", self.RefName)
 
 	return OpDescription {
 		TopLine: topLine,

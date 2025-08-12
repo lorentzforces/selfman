@@ -36,6 +36,8 @@ e.g. `origin/main` -> `origin%SLASH%main`
     + config.yaml (optional)
     + apps/
       + [app-name].config.yaml
+- lib-dir/ (usually ~/.local/lib)
+  + [app-name] (links to source dir)
 ```
 
 > **NOTE:** For the purposes of the source directory, the version label for a git app is always "git"

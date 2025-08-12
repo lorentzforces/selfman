@@ -80,6 +80,7 @@ type AppStatus struct {
 	LibLinkPresent bool
 	DesiredVersion string
 	AvailableVersions []string
+	CurrentCommitHash string
 }
 
 func (self AppStatus) FullyPresent() bool {
