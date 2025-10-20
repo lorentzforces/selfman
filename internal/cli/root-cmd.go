@@ -38,6 +38,7 @@ func CreateRootCmd() *cobra.Command {
 			CreateMakeItSoCmd(),
 			CreateCheckCmd(),
 			CreateRemoveCmd(),
+			CreateVersionCmd(),
 		},
 	)
 	// TODO: intake binary for static-binary app
