@@ -27,6 +27,8 @@ func Produce() (Selfman, error) {
 	return selfman, nil
 }
 
+// TODO(bad-configs-list): Don't short-circuit when an app fails validation. Instead return all
+// valid configs as well as a joined error with all errors
 func SelfmanFromValues(
 	system *SystemConfig,
 	apps []AppConfig,

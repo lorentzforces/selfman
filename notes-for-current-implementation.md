@@ -1,8 +1,10 @@
 ## Big TODOS
 
-Need to update git app handling to rebuild if/when you've gotten fresh commits on a branch. Right now selfman will see that the version name has not changed, and therefore won't rebuild the app since the target artifact already exists. For now this can be clunkily worked around by running the 'remove' operation and then updating the app again, but this is basically the standard usage for a git app and so should be fixed. Probably could be done via a git-aware build operation (new operation type) which is initialized with a commit hash, and then skips the build if the current commit hash matches that hash. Alternatively (and this may be preferable for branch-switching reasons), might consider adding the commit hash to the artifact naming convention so it can be compared later.
+List command should tolerate bad configs and display those errors alongside a list of the valid configurations.
 
-Relatedly, the check command needs some work:
+Consider: should commands which operate on a specific app ignore any parsing or configuration issues with non-specified apps?
+
+Related to git app woes, the check command needs some work:
 - git apps show available branch versions, but not available artifact versions. Both should probably be shown.
 - If an app has a lot of versions available, the formatting will probably be crap. This is probably puntable until I have an app which this actually affects, but something like a columnar display (3 columns max or something) may be good.
 

@@ -9,6 +9,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO(bad-configs-list): don't short-circuit when an error is encountered in configuration, and
+// instead display all config errors in addition to all valid configs
+
 func CreateListCmd() SelfmanCommand {
 	return SelfmanCommand{
 		cobraCmd: &cobra.Command{
