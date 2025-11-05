@@ -213,47 +213,72 @@ func replacePlaceholders(original string, keyVals map[string]string) (string, er
 var validLabelPattern = regexp.MustCompile(`\A[-A-Za-z_]*\z`)
 // Validates an application config - error will be non-nil if validation failed.
 func (self *AppConfig) validate() error {
+	errs := make([]error, 0)
 	if len(self.Name) == 0 {
-		return fmt.Errorf("Application name cannot be empty")
+		errs = append(errs, fmt.Errorf("Application name cannot be empty"))
 	}
 
 	if !self.isValidAppFlavor() {
-		return fmt.Errorf("(app %s) Invalid application flavor: %s", self.Name, self.Flavor)
+		errs = append(
+			errs,
+			fmt.Errorf("(app %s) Invalid application flavor: \"%s\"", self.Name, self.Flavor),
+		)
 	}
 
 	if !self.isValidBuildAction() {
-		return fmt.Errorf("(app %s) Invalid build action: %s", self.Name, self.BuildAction)
+		errs = append(
+			errs,
+			fmt.Errorf("(app %s) Invalid build action: \"%s\"", self.Name, self.BuildAction),
+		)
 	}
 
 	if self.Flavor == FlavorGit && self.RemoteRepo == nil {
-		return fmt.Errorf(
-			"(app %s) Remote repo must be specified for apps of flavor %s", self.Name, FlavorGit)
+		errs = append(
+			errs,
+			fmt.Errorf(
+				"(app %s) Remote repo must be specified for apps of flavor \"%s\"",
+				self.Name, FlavorGit,
+			),
+		)
 	}
 
 	if self.Flavor == FlavorWebFetch && self.WebUrl == nil {
-		return fmt.Errorf(
-			"(app %s) Web URL must be specified for apps of flavor %s", self.Name, FlavorWebFetch)
+		errs = append(
+			errs,
+			fmt.Errorf(
+				"(app %s) Web URL must be specified for apps of flavor \"%s\"",
+				self.Name, FlavorWebFetch,
+			),
+		)
 	}
 
 	for label, _ := range self.MiscVars {
 		if nil == validLabelPattern.FindStringIndex(label) {
-			return fmt.Errorf(
-				"(app %s) Label \"%s\" must be only upper & lower case letters, hyphens, and " +
-					"underscores",
-				self.Name, label,
+			errs = append(
+				errs,
+				fmt.Errorf(
+					"(app %s) Label \"%s\" must be only upper & lower case letters, hyphens, and " +
+						"underscores",
+					self.Name, label,
+				),
 			)
 		}
 
 		// all our valid characters are 1-byte in utf-8, so this is reasonable
 		if len(label) < 3 {
-			return fmt.Errorf(
-				"(app %s) Label \"%s\" is less than the required three characters",
-				self.Name, label,
+			errs = append(
+				errs,
+				fmt.Errorf(
+					"(app %s) Label \"%s\" is less than the required three characters",
+					self.Name, label,
+				),
 			)
 		}
 	}
 
-	return nil
+	if len(errs) == 0 { return nil }
+
+	return errors.Join(errs...)
 }
 
 func (self *AppConfig) isValidAppFlavor() bool {
@@ -269,6 +294,11 @@ func (self *AppConfig) isValidBuildAction() bool {
 	case ActionNone, BuildActionScript: return true
 	default: return false
 	}
+}
+
+type appConfigLoadResults struct {
+	configs []AppConfig
+	appConfigErrors []error
 }
 
 func loadAppConfigs(systemConfig *SystemConfig) ([]AppConfig, error) {
